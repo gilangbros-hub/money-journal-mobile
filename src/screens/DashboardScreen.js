@@ -12,7 +12,7 @@ const typeEmojis = {
 };
 
 
-export default function DashboardScreen({ setIsAuthenticated }) {
+export default function DashboardScreen({ setIsAuthenticated, navigation }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -146,7 +146,7 @@ export default function DashboardScreen({ setIsAuthenticated }) {
                 <View className="mb-4">
                     <View className="flex-row justify-between items-end mb-4 px-1">
                         <Text className="text-[17px] font-bold text-text-primary">Recent Transactions</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate('AllTransactions')}>
                             <Text className="text-primary font-bold text-sm">View All</Text>
                         </TouchableOpacity>
                     </View>

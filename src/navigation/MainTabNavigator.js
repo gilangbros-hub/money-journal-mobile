@@ -4,8 +4,9 @@ import { View, Text } from 'react-native';
 
 import DashboardScreen from '../screens/DashboardScreen';
 
+import AddTransactionScreen from '../screens/AddTransactionScreen';
+
 // Temporary Placeholders for Phase 3 & 4 screens
-const AddTransactionScreen = () => <View className="flex-1 bg-bg justify-center items-center"><Text className="text-white">Add Screen</Text></View>;
 const BudgetScreen = () => <View className="flex-1 bg-bg justify-center items-center"><Text className="text-white">Budget Screen</Text></View>;
 const ProfileScreen = () => <View className="flex-1 bg-bg justify-center items-center"><Text className="text-white">Profile Screen</Text></View>;
 
