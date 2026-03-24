@@ -17,14 +17,15 @@ export default function MainTabNavigator({ setIsAuthenticated }) {
         tabBarStyle: { 
             backgroundColor: '#1E293B', 
             borderTopColor: '#334155', 
-            paddingBottom: 8, 
-            paddingTop: 8,
-            height: 65,
+            paddingBottom: 14, 
+            paddingTop: 10,
+            height: 75,
             borderTopWidth: 1
         },
         tabBarActiveTintColor: '#7C3AED',
         tabBarInactiveTintColor: '#94A3B8',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 4 }
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+        tabBarIconStyle: { marginBottom: 0 }
       })}
     >
       <Tab.Screen 

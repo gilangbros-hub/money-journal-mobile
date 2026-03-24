@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
 
@@ -13,32 +13,54 @@ const typeEmojis = {
 export default function AllTransactionsScreen({ navigation }) {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [filterType, setFilterType] = useState('All');
-
-    const today = new Date();
-    const [month, setMonth] = useState(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`);
+    const [targetDate, setTargetDate] = useState(new Date());
+    const [sortOrder, setSortOrder] = useState('desc'); 
 
     useEffect(() => {
         fetchTransactions();
-    }, [month, filterType]);
+    }, [targetDate, filterType, sortOrder]);
 
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            const params = { month };
+            const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
+            const params = { month: monthStr };
             if (filterType !== 'All') params.type = filterType;
+            if (sortOrder) params.sort = sortOrder;
             
             const response = await api.get('/api/transactions', { params });
+            
+            let data = [];
             if (response.data && response.data.data) {
-                setTransactions(response.data.data);
+                 if (Array.isArray(response.data.data)) {
+                     data = response.data.data;
+                 } else if (response.data.data.transactions) {
+                     data = response.data.data.transactions;
+                 }
             } else if (Array.isArray(response.data)) {
-                 setTransactions(response.data);
+                 data = response.data;
             }
+            
+            data = data.sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+            setTransactions(data);
         } catch (error) {
             console.error('Error fetching all transactions', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchTransactions();
     };
 
     const handleDelete = async (id) => {
@@ -63,6 +85,27 @@ export default function AllTransactionsScreen({ navigation }) {
         );
     }
 
+    const handlePrevMonth = () => {
+        const newDate = new Date(targetDate);
+        newDate.setMonth(newDate.getMonth() - 1);
+        setTargetDate(newDate);
+    };
+
+    const handleNextMonth = () => {
+        const newDate = new Date(targetDate);
+        newDate.setMonth(newDate.getMonth() + 1);
+        setTargetDate(newDate);
+    };
+
+    const toggleSort = () => {
+        setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    };
+
+    const monthLabel = targetDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+    const totalAmount = transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const formattedTotal = `Rp ${totalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+
     const renderItem = ({ item }) => (
         <View className="bg-bg-secondary p-4 rounded-2xl flex-row items-center mb-3 shadow-sm border border-border/50">
             <View className="w-12 h-12 bg-bg-tertiary rounded-xl items-center justify-center mr-3">
@@ -84,15 +127,31 @@ export default function AllTransactionsScreen({ navigation }) {
     return (
         <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
             {/* Header */}
-            <View className="px-5 py-3 flex-row items-center border-b border-border/50 bg-bg z-10">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-5 py-1">
-                    <Text className="text-primary text-[22px] font-bold">←</Text>
+            <View className="px-5 py-3 flex-row items-center justify-between border-b border-border/50 bg-bg z-10">
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-5 py-1">
+                        <Text className="text-primary text-[22px] font-bold">←</Text>
+                    </TouchableOpacity>
+                    <Text className="text-[20px] font-bold text-text-primary">Transactions</Text>
+                </View>
+                <TouchableOpacity onPress={toggleSort} className="bg-bg-secondary px-3 py-1.5 rounded-full border border-border/50">
+                    <Text className="text-text-primary text-xs font-bold">{sortOrder === 'desc' ? '↓ Newest' : '↑ Oldest'}</Text>
                 </TouchableOpacity>
-                <Text className="text-[20px] font-bold text-text-primary">All Transactions</Text>
+            </View>
+
+            {/* Month Navigation */}
+            <View className="px-5 py-2 flex-row items-center justify-between z-10">
+                <TouchableOpacity onPress={handlePrevMonth} className="w-10 h-10 bg-bg-secondary rounded-xl items-center justify-center border border-border/50">
+                    <Text className="text-text-secondary text-lg font-bold">←</Text>
+                </TouchableOpacity>
+                <Text className="text-lg font-bold text-text-primary">{monthLabel}</Text>
+                <TouchableOpacity onPress={handleNextMonth} className="w-10 h-10 bg-bg-secondary rounded-xl items-center justify-center border border-border/50">
+                    <Text className="text-text-secondary text-lg font-bold">→</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Filters */}
-            <View className="py-4 pl-5 border-b border-border/50">
+            <View className="py-3 pl-5 border-b border-border/50">
                 <FlatList
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -109,8 +168,14 @@ export default function AllTransactionsScreen({ navigation }) {
                 />
             </View>
 
+            {/* Summary Bar */}
+            <View className="px-5 py-3 flex-row justify-between items-center bg-bg-secondary border-b border-border/50 mb-2">
+                <Text className="text-text-secondary font-medium text-[13px]">{transactions.length} Transactions</Text>
+                <Text className="text-coral font-bold text-[15px]">{formattedTotal}</Text>
+            </View>
+
             {/* List */}
-            {loading ? (
+            {loading && !refreshing ? (
                 <View className="flex-1 justify-center items-center">
                     <ActivityIndicator size="large" color="#7C3AED" />
                 </View>
@@ -121,6 +186,7 @@ export default function AllTransactionsScreen({ navigation }) {
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
                     ListEmptyComponent={<Text className="text-center text-text-muted mt-10">No transactions found.</Text>}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7C3AED" />}
                 />
             )}
         </SafeAreaView>

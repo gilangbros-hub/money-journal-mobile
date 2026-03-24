@@ -12,15 +12,34 @@ const types = [
     { name: 'Medicine', icon: '💊' }, { name: 'Others', icon: '📦' }
 ];
 
-const pockets = ['BCA', 'Mandiri', 'Cash', 'BNI', 'GoPay', 'OVO'];
-const paidBys = [{ name: 'Gilang', icon: '👦' }, { name: 'Revo', icon: '👱‍♂️' }, { name: 'Split', icon: '✂️' }];
+const pockets = [
+    { name: 'Kwintals', icon: '💰' }, { name: 'Groceries', icon: '🥦' },
+    { name: 'Weekday Transport', icon: '🚌' }, { name: 'Weekend Transport', icon: '🚗' },
+    { name: 'Investasi', icon: '📈' }, { name: 'Bandung', icon: '⛰️' },
+    { name: 'Sedeqah', icon: '🤲' }, { name: 'IPL', icon: '🏘️' }
+];
+
+const getBudgetMonths = () => {
+    const dates = [];
+    const now = new Date();
+    for (let i = -1; i <= 1; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        dates.push({
+            label: d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
+            value: { month: d.getMonth() + 1, year: d.getFullYear() }
+        });
+    }
+    return dates;
+};
 
 export default function AddTransactionScreen({ navigation }) {
+    const budgetMonthsList = getBudgetMonths();
+
     const [amount, setAmount] = useState('');
     const [ngapain, setNgapain] = useState('');
     const [type, setType] = useState('Eat');
-    const [pocket, setPocket] = useState('BCA');
-    const [paidBy, setPaidBy] = useState('Gilang');
+    const [pocket, setPocket] = useState('Kwintals');
+    const [budgetMonth, setBudgetMonth] = useState(budgetMonthsList[1]);
     
     // Date handling
     const [date, setDate] = useState(new Date());
@@ -42,23 +61,19 @@ export default function AddTransactionScreen({ navigation }) {
 
         setLoading(true);
         try {
-            // Backend expects specific date format depending on the original implementation
-            // The HTML was an <input type="date"> which submits YYYY-MM-DD
-            const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            
             const payload = {
                 amount: parseInt(amount.replace(/[^0-9]/g, ''), 10),
                 ngapain,
                 type,
                 pocket,
-                paidBy,
-                date: formattedDate
+                budgetMonth: budgetMonth.value.month,
+                budgetYear: budgetMonth.value.year,
+                date: date.toISOString()
             };
 
             await api.post('/api/transaction', payload);
             Alert.alert('Success', 'Transaction saved successfully!', [
                 { text: 'OK', onPress: () => {
-                    // Reset form or navigate
                     setAmount('');
                     setNgapain('');
                     navigation.navigate('Dashboard');
@@ -76,126 +91,128 @@ export default function AddTransactionScreen({ navigation }) {
         <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                 {/* Header */}
-                <View className="px-5 py-3 mb-2 flex-row justify-between items-center z-10 border-b border-border/50 bg-bg">
+                <View className="px-5 py-3 flex-row justify-between items-center z-10 border-b border-border/50 bg-bg">
                     <Text className="text-[20px] font-bold text-text-primary">Add Transaction</Text>
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }} className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }} className="flex-1" showsVerticalScrollIndicator={false}>
                     
-                    {/* Amount */}
-                    <View className="mt-4 mb-5">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Amount (Rp)</Text>
-                        <TextInput
-                            className="w-full bg-bg-secondary text-lime py-4 px-5 rounded-2xl text-2xl font-extrabold border border-border/50"
-                            placeholder="0"
-                            placeholderTextColor="#94A3B8"
-                            keyboardType="numeric"
-                            value={amount}
-                            onChangeText={setAmount}
-                        />
-                    </View>
-
-                    {/* Notes (Ngapain) */}
-                    <View className="mb-5">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Notes (Ngapain)</Text>
-                        <TextInput
-                            className="w-full bg-bg-secondary text-text-primary py-4 px-5 rounded-2xl text-[15px] border border-border/50"
-                            placeholder="Lunch at mall..."
-                            placeholderTextColor="#94A3B8"
-                            value={ngapain}
-                            onChangeText={setNgapain}
-                        />
-                    </View>
-
-                    {/* Date Picker */}
-                    <View className="mb-6">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Date</Text>
-                        <TouchableOpacity 
-                            className="bg-bg-secondary py-4 px-5 rounded-2xl border border-border/50 flex-row items-center"
-                            onPress={() => setShowDatePicker(true)}
-                        >
-                            <Text className="text-[18px] mr-3">📅</Text>
-                            <Text className="text-text-primary font-bold">{date.toLocaleDateString()}</Text>
-                        </TouchableOpacity>
-
-                        {showDatePicker && (
-                            <DateTimePicker
-                                value={date}
-                                mode="date"
-                                display="default"
-                                onChange={handleDateChange}
-                            />
-                        )}
-                    </View>
-
-                    {/* Type/Category */}
-                    <View className="mb-6">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Category</Text>
-                        <View className="flex-row flex-wrap justify-between gap-y-3">
+                    {/* 1. Expense Type — 3 columns */}
+                    <View className="mt-3 mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Expense Type</Text>
+                        <View className="flex-row flex-wrap justify-between gap-y-2">
                             {types.map((t) => (
                                 <TouchableOpacity 
                                     key={t.name}
                                     onPress={() => setType(t.name)}
-                                    className={`w-[31%] aspect-square rounded-2xl items-center justify-center border ${type === t.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                    className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${type === t.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
                                 >
-                                    <Text className="text-3xl mb-1">{t.icon}</Text>
+                                    <Text className="text-2xl mb-1">{t.icon}</Text>
                                     <Text className={`text-[10px] text-center font-bold px-1 ${type === t.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={1}>{t.name}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
 
-                    {/* Pocket */}
-                    <View className="mb-6">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Pocket</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                            {pockets.map((p) => (
-                                <TouchableOpacity 
-                                    key={p}
-                                    onPress={() => setPocket(p)}
-                                    className={`px-6 py-3 rounded-xl mr-3 border ${pocket === p ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
-                                >
-                                    <Text className={`font-bold ${pocket === p ? 'text-primary' : 'text-text-secondary'}`}>{p}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
+                    {/* 2. Notes (Ngapain) */}
+                    <View className="mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Description (Notes)</Text>
+                        <TextInput
+                            className="w-full bg-bg-secondary text-text-primary py-3.5 px-5 rounded-2xl text-[15px] border border-border/50"
+                            placeholder="What did you buy?"
+                            placeholderTextColor="#94A3B8"
+                            value={ngapain}
+                            onChangeText={setNgapain}
+                        />
                     </View>
 
-                    {/* Paid By */}
-                    <View className="mb-6">
-                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Paid By</Text>
-                        <View className="flex-row justify-between">
-                            {paidBys.map((pb) => (
+                    {/* 3. Amount */}
+                    <View className="mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Amount</Text>
+                        <View className="w-full bg-bg-secondary flex-row items-center py-3.5 px-5 rounded-2xl border border-border/50">
+                            <Text className="text-primary font-extrabold text-2xl mr-2">Rp</Text>
+                            <TextInput
+                                className="flex-1 text-text-primary text-2xl font-extrabold"
+                                placeholder="0"
+                                placeholderTextColor="#94A3B8"
+                                keyboardType="numeric"
+                                value={amount}
+                                onChangeText={setAmount}
+                            />
+                        </View>
+                    </View>
+
+                    {/* 4. Date & Time — moved below Amount */}
+                    <View className="mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Date & Time</Text>
+                        <TouchableOpacity 
+                            className="bg-bg-secondary py-3.5 px-5 rounded-2xl border border-border/50 flex-row items-center"
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <Text className="text-[18px] mr-3">📅</Text>
+                            <Text className="text-text-primary font-bold">
+                                {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={date}
+                                mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                                display="default"
+                                onChange={handleDateChange}
+                            />
+                        )}
+                    </View>
+
+                    {/* 5. Pocket Source — 3 columns (consistent with Expense Type) */}
+                    <View className="mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Pocket Source</Text>
+                        <View className="flex-row flex-wrap justify-between gap-y-2">
+                            {pockets.map((p) => (
                                 <TouchableOpacity 
-                                    key={pb.name}
-                                    onPress={() => setPaidBy(pb.name)}
-                                    className={`w-[31%] py-4 rounded-xl items-center border ${paidBy === pb.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                    key={p.name}
+                                    onPress={() => setPocket(p.name)}
+                                    className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${pocket === p.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
                                 >
-                                    <Text className="text-2xl mb-1">{pb.icon}</Text>
-                                    <Text className={`font-bold text-xs ${paidBy === pb.name ? 'text-primary' : 'text-text-secondary'}`}>{pb.name}</Text>
+                                    <Text className="text-2xl mb-1">{p.icon}</Text>
+                                    <Text className={`text-[9px] text-center font-bold px-1 ${pocket === p.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={2}>{p.name}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
+
+                    {/* 6. Budget Month */}
+                    <View className="mb-4">
+                        <Text className="text-text-secondary font-medium text-[13px] mb-2">Budget Month</Text>
+                        <View className="flex-row justify-between">
+                            {budgetMonthsList.map((bm) => (
+                                <TouchableOpacity 
+                                    key={bm.label}
+                                    onPress={() => setBudgetMonth(bm)}
+                                    className={`w-[31%] py-3 rounded-xl items-center border ${budgetMonth.label === bm.label ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                >
+                                    <Text className={`font-bold text-xs ${budgetMonth.label === bm.label ? 'text-primary' : 'text-text-secondary'}`}>{bm.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Save Button — inline at bottom of scroll, natural position */}
+                    <TouchableOpacity 
+                        className="w-full bg-primary rounded-2xl h-14 items-center justify-center flex-row shadow-glow-primary mt-2 mb-6"
+                        onPress={handleSave}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                            <Text className="text-white font-bold text-[15px]">Save Transaction</Text>
+                        )}
+                    </TouchableOpacity>
                     
                 </ScrollView>
             </KeyboardAvoidingView>
-
-            {/* Sticky Submit Button */}
-            <View className="absolute bottom-[80px] left-5 right-5 z-[100]">
-                <TouchableOpacity 
-                    className="w-full bg-primary rounded-2xl h-14 items-center justify-center flex-row shadow-glow-primary"
-                    onPress={handleSave}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#FFFFFF" />
-                    ) : (
-                        <Text className="text-white font-bold text-[15px]">Save Transaction</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
-            
         </SafeAreaView>
     );
 }

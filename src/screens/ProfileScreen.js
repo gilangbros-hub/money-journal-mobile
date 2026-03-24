@@ -1,9 +1,54 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
 
+const avatars = ['👨‍💼','👩‍💼','🧑‍💻','🦸‍♂️','🦹‍♀️','🧙‍♂️','🧛‍♂️','🧟‍♂️','🐱','🐶','🦊','🐻'];
+const roles = ['Husband', 'Wife', 'Self'];
+
 export default function ProfileScreen({ setIsAuthenticated }) {
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    
+    const [username, setUsername] = useState('');
+    const [avatar, setAvatar] = useState('👨‍💼');
+    const [role, setRole] = useState('Self');
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await api.get('/api/auth/me');
+                if (response.data && response.data.user) {
+                    setUsername(response.data.user.username);
+                    setAvatar(response.data.user.avatar || '👨‍💼');
+                    setRole(response.data.user.role || 'Self');
+                }
+            } catch (error) {
+                console.error("Error fetching profile", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProfile();
+    }, []);
+
+    const handleSave = async () => {
+        if (!username.trim()) {
+            Alert.alert("Error", "Username cannot be empty");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            await api.post('/profile', { username, avatar, role });
+            Alert.alert("Success", "Profile updated successfully!");
+        } catch (error) {
+            console.error("Save error", error);
+            Alert.alert("Error", "Failed to update profile");
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const handleLogout = () => {
         Alert.alert(
@@ -16,10 +61,9 @@ export default function ProfileScreen({ setIsAuthenticated }) {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await api.get('/auth/logout');
+                            await api.post('/api/auth/logout');
                             setIsAuthenticated(false);
                         } catch (e) {
-                            // even if fails, force it locally
                             setIsAuthenticated(false);
                         }
                     }
@@ -28,59 +72,83 @@ export default function ProfileScreen({ setIsAuthenticated }) {
         );
     }
 
+    if (loading) {
+        return (
+            <SafeAreaView className="flex-1 bg-bg justify-center items-center">
+                <ActivityIndicator size="large" color="#7C3AED" />
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
-            <View className="px-5 py-3 border-b border-border/50 bg-bg z-10">
-                <Text className="text-[20px] font-bold text-text-primary">Profile</Text>
-            </View>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+                <View className="px-5 py-3 border-b border-border/50 bg-bg z-10 flex-row justify-between items-center">
+                    <Text className="text-[20px] font-bold text-text-primary">Edit Profile</Text>
+                    <TouchableOpacity onPress={handleLogout}>
+                        <Text className="text-coral font-bold">Logout</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }} className="flex-1">
-                
-                {/* User Info Card */}
-                <View className="bg-bg-secondary p-6 rounded-3xl border border-border/50 items-center mb-6 shadow-sm">
-                    <View className="w-24 h-24 bg-primary/20 rounded-full items-center justify-center border-4 border-primary/50 relative mb-4">
-                        <Text className="text-5xl">👨‍💼</Text>
+                <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }} className="flex-1">
+                    
+                    {/* Avatar Picker */}
+                    <View className="mb-6">
+                        <Text className="text-[13px] font-bold uppercase tracking-wider text-text-secondary mb-3">CHOOSE AVATAR</Text>
+                        <View className="flex-row flex-wrap gap-y-3 justify-between">
+                            {avatars.map((a) => (
+                                <TouchableOpacity 
+                                    key={a}
+                                    onPress={() => setAvatar(a)}
+                                    className={`w-[23%] aspect-square items-center justify-center rounded-full border-2 ${avatar === a ? 'border-primary bg-primary/20 scale-110' : 'border-transparent bg-bg-secondary'}`}
+                                >
+                                    <Text className="text-3xl">{a}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
-                    <Text className="text-[20px] font-bold text-text-primary mb-1">Gilang / Revo</Text>
-                    <Text className="text-text-secondary text-[14px]">Admin User</Text>
-                </View>
 
-                {/* Settings Menu */}
-                <View className="bg-bg-secondary rounded-3xl border border-border/50 overflow-hidden mb-8">
-                    <TouchableOpacity className="flex-row items-center justify-between p-5 border-b border-border/50">
-                        <View className="flex-row items-center">
-                            <Text className="text-xl mr-3">🎨</Text>
-                            <Text className="text-text-primary font-semibold text-[15px]">Appearance</Text>
+                    {/* Role Picker */}
+                    <View className="mb-6">
+                        <Text className="text-[13px] font-bold uppercase tracking-wider text-text-secondary mb-3">CHOOSE ROLE</Text>
+                        <View className="flex-row justify-between gap-x-2">
+                            {roles.map((r) => (
+                                <TouchableOpacity 
+                                    key={r}
+                                    onPress={() => setRole(r)}
+                                    className={`flex-1 py-3 items-center rounded-xl border-2 ${role === r ? 'border-primary bg-primary/20' : 'border-transparent bg-bg-secondary'}`}
+                                >
+                                    <Text className={`font-semibold text-base ${role === r ? 'text-primary' : 'text-text-secondary'}`}>{r}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
-                        <Text className="text-text-muted">→</Text>
+                    </View>
+
+                    {/* Username Input */}
+                    <View className="mb-8">
+                        <Text className="text-[13px] font-medium text-text-secondary mb-2">Username</Text>
+                        <TextInput
+                            className="w-full bg-bg-tertiary text-text-primary py-4 px-5 rounded-2xl text-[15px]"
+                            value={username}
+                            onChangeText={setUsername}
+                        />
+                    </View>
+
+                    {/* Save Button */}
+                    <TouchableOpacity 
+                        className="w-full bg-primary rounded-2xl h-14 items-center justify-center flex-row shadow-glow-primary"
+                        onPress={handleSave}
+                        disabled={saving}
+                    >
+                        {saving ? (
+                            <ActivityIndicator color="#FFFFFF" />
+                        ) : (
+                            <Text className="text-white font-bold text-[15px]">Save Changes</Text>
+                        )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity className="flex-row items-center justify-between p-5 border-b border-border/50">
-                        <View className="flex-row items-center">
-                            <Text className="text-xl mr-3">⚙️</Text>
-                            <Text className="text-text-primary font-semibold text-[15px]">Account Settings</Text>
-                        </View>
-                        <Text className="text-text-muted">→</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity className="flex-row items-center justify-between p-5">
-                        <View className="flex-row items-center">
-                            <Text className="text-xl mr-3">📱</Text>
-                            <Text className="text-text-primary font-semibold text-[15px]">About App v2.0</Text>
-                        </View>
-                        <Text className="text-text-muted">→</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Logout */}
-                <TouchableOpacity 
-                    onPress={handleLogout}
-                    className="w-full bg-coral/10 border border-coral/30 rounded-2xl h-14 items-center justify-center flex-row shadow-sm"
-                >
-                    <Text className="text-coral font-bold text-[15px]">Sign Out</Text>
-                </TouchableOpacity>
-
-            </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }

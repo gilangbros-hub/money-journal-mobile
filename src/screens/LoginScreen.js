@@ -19,9 +19,8 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
         setError('');
 
         try {
-            // The API returns a 302 redirect on successful login normally for Web,
-            // but Axios will follow it. If we hit the dashboard or get a 200, we're good.
-            const response = await api.post('/auth/login', {
+            // The mobile app uses the dedicated JSON endpoint `/api/auth/login`
+            const response = await api.post('/api/auth/login', {
                 username,
                 password
             });

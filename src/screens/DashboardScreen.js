@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-gifted-charts';
 import api from '../api/axios';
@@ -15,16 +15,35 @@ const typeEmojis = {
 export default function DashboardScreen({ setIsAuthenticated, navigation }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [avatar, setAvatar] = useState('👤');
+
+    const [targetDate, setTargetDate] = useState(new Date());
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
 
     useEffect(() => {
         fetchDashboard();
-    }, []);
+    }, [targetDate]);
+
+    const fetchProfile = async () => {
+        try {
+            const response = await api.get('/api/auth/me');
+            if (response.data && response.data.user) {
+                setAvatar(response.data.user.avatar || '👤');
+            }
+        } catch (error) {
+            // ignore silently
+        }
+    };
 
     const fetchDashboard = async () => {
+        setLoading(true);
         try {
-            const today = new Date();
-            const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-            const response = await api.get('/api/dashboard/summary', { params: { month } });
+            const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
+            const response = await api.get('/api/dashboard/summary', { params: { month: monthStr } });
             if (response.data && response.data.success) {
                 setData(response.data.data);
             }
@@ -35,10 +54,29 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
             }
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
-    if (loading) {
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchProfile();
+        fetchDashboard();
+    };
+
+    const handlePrevMonth = () => {
+        const newDate = new Date(targetDate);
+        newDate.setMonth(newDate.getMonth() - 1);
+        setTargetDate(newDate);
+    };
+
+    const handleNextMonth = () => {
+        const newDate = new Date(targetDate);
+        newDate.setMonth(newDate.getMonth() + 1);
+        setTargetDate(newDate);
+    };
+
+    if (loading && !refreshing) {
         return (
             <SafeAreaView className="flex-1 bg-bg justify-center items-center">
                 <ActivityIndicator size="large" color="#7C3AED" />
@@ -61,19 +99,37 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
         textColor: '#fff',
     }));
 
+    const monthLabel = targetDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
     return (
         <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
             {/* Header */}
             <View className="px-5 py-2 mb-2 flex-row justify-between items-center z-10">
                 <Text className="text-[22px] font-bold text-text-primary">Dashboard</Text>
-                <TouchableOpacity onPress={() => setIsAuthenticated(false)}>
+                <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                     <View className="w-10 h-10 bg-bg-secondary rounded-full items-center justify-center border border-border/50">
-                        <Text className="text-lg">👨‍💼</Text>
+                        <Text className="text-lg">{avatar}</Text>
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} className="flex-1" showsVerticalScrollIndicator={false}>
+            {/* Month Navigation for Dashboard too */}
+            <View className="px-5 py-2 flex-row items-center justify-between z-10">
+                <TouchableOpacity onPress={handlePrevMonth} className="w-10 h-10 bg-bg-secondary rounded-xl items-center justify-center border border-border/50">
+                    <Text className="text-text-secondary text-lg font-bold">←</Text>
+                </TouchableOpacity>
+                <Text className="text-lg font-bold text-text-primary">{monthLabel}</Text>
+                <TouchableOpacity onPress={handleNextMonth} className="w-10 h-10 bg-bg-secondary rounded-xl items-center justify-center border border-border/50">
+                    <Text className="text-text-secondary text-lg font-bold">→</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+                contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }} 
+                className="flex-1 mt-2" 
+                showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7C3AED" />}
+            >
                 
                 {/* Hero Card */}
                 <View className="bg-primary rounded-3xl p-6 mb-6 shadow-sm relative overflow-hidden">
