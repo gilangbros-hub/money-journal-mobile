@@ -161,9 +161,9 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                                 data={pieData}
                                 centerLabelComponent={() => {
                                     return (
-                                        <View className="justify-center items-center">
-                                            <Text className="text-text-muted text-[11px] font-semibold">Total</Text>
-                                            <Text className="text-white font-bold text-[22px]">{data.categories.length}</Text>
+                                        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                            <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '600' }}>Total</Text>
+                                            <Text style={{ color: '#0F172A', fontSize: 22, fontWeight: '800' }}>{data.categories.length}</Text>
                                         </View>
                                     );
                                 }}

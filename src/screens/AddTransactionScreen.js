@@ -41,10 +41,8 @@ export default function AddTransactionScreen({ navigation }) {
     const [pocket, setPocket] = useState('Kwintals');
     const [budgetMonth, setBudgetMonth] = useState(budgetMonthsList[1]);
     
-    // Date handling
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-
     const [loading, setLoading] = useState(false);
 
     const handleDateChange = (event, selectedDate) => {
@@ -95,7 +93,7 @@ export default function AddTransactionScreen({ navigation }) {
                     <Text className="text-[20px] font-bold text-text-primary">Add Transaction</Text>
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }} className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 80 }} className="flex-1" showsVerticalScrollIndicator={false}>
                     
                     {/* 1. Expense Type — 3 columns */}
                     <View className="mt-3 mb-4">
@@ -114,7 +112,7 @@ export default function AddTransactionScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* 2. Notes (Ngapain) */}
+                    {/* 2. Notes */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Description (Notes)</Text>
                         <TextInput
@@ -142,7 +140,7 @@ export default function AddTransactionScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {/* 4. Date & Time — moved below Amount */}
+                    {/* 4. Date & Time */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Date & Time</Text>
                         <TouchableOpacity 
@@ -154,7 +152,6 @@ export default function AddTransactionScreen({ navigation }) {
                                 {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Text>
                         </TouchableOpacity>
-
                         {showDatePicker && (
                             <DateTimePicker
                                 value={date}
@@ -165,7 +162,7 @@ export default function AddTransactionScreen({ navigation }) {
                         )}
                     </View>
 
-                    {/* 5. Pocket Source — 3 columns (consistent with Expense Type) */}
+                    {/* 5. Pocket Source — 3 columns */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Pocket Source</Text>
                         <View className="flex-row flex-wrap justify-between gap-y-2">
@@ -197,22 +194,25 @@ export default function AddTransactionScreen({ navigation }) {
                             ))}
                         </View>
                     </View>
-
-                    {/* Save Button — inline at bottom of scroll, natural position */}
-                    <TouchableOpacity 
-                        className="w-full bg-primary rounded-2xl h-14 items-center justify-center flex-row shadow-glow-primary mt-2 mb-6"
-                        onPress={handleSave}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                            <Text className="text-white font-bold text-[15px]">Save Transaction</Text>
-                        )}
-                    </TouchableOpacity>
                     
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* Floating Save Button — sits above tab bar with gap */}
+            <View style={{ position: 'absolute', bottom: 100, left: 20, right: 20, zIndex: 100 }}>
+                <TouchableOpacity 
+                    style={{ width: '100%', backgroundColor: '#7C3AED', borderRadius: 16, height: 56, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 }}
+                    onPress={handleSave}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Save Transaction</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+            
         </SafeAreaView>
     );
 }
