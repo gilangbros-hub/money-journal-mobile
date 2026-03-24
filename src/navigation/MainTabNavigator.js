@@ -3,12 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text } from 'react-native';
 
 import DashboardScreen from '../screens/DashboardScreen';
-
 import AddTransactionScreen from '../screens/AddTransactionScreen';
-
-// Temporary Placeholders for Phase 3 & 4 screens
-const BudgetScreen = () => <View className="flex-1 bg-bg justify-center items-center"><Text className="text-white">Budget Screen</Text></View>;
-const ProfileScreen = () => <View className="flex-1 bg-bg justify-center items-center"><Text className="text-white">Profile Screen</Text></View>;
+import BudgetScreen from '../screens/BudgetScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -48,9 +45,10 @@ export default function MainTabNavigator({ setIsAuthenticated }) {
       />
       <Tab.Screen 
         name="Profile" 
-        component={ProfileScreen} 
         options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text> }}
-      />
+      >
+        {(props) => <ProfileScreen {...props} setIsAuthenticated={setIsAuthenticated} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
