@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
-import DashboardScreen from './src/screens/DashboardScreen';
+import MainTabNavigator from './src/navigation/MainTabNavigator';
 
 // We intercept networking config
 import api from './src/api/axios';
@@ -47,8 +47,8 @@ export default function App() {
             {(props) => <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />}
           </Stack.Screen>
         ) : (
-          <Stack.Screen name="Dashboard">
-             {(props) => <DashboardScreen {...props} setIsAuthenticated={setIsAuthenticated} />}
+          <Stack.Screen name="MainTabs">
+             {(props) => <MainTabNavigator {...props} setIsAuthenticated={setIsAuthenticated} />}
           </Stack.Screen>
         )}
       </Stack.Navigator>
