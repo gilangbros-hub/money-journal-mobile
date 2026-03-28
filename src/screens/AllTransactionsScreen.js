@@ -10,17 +10,25 @@ const typeEmojis = {
     'Uang Sampah': '🗑️', 'Uang Keamanan': '👮', 'Medicine': '💊', 'Others': '📦'
 };
 
+const pockets = ['All', 'Kwintals', 'Groceries', 'Weekday Transport', 'Weekend Transport', 'Investasi', 'Bandung', 'Sedeqah', 'IPL'];
+const pocketIcons = {
+    'Kwintals': '💰', 'Groceries': '🥦', 'Weekday Transport': '🚌',
+    'Weekend Transport': '🚗', 'Investasi': '📈', 'Bandung': '⛰️',
+    'Sedeqah': '🤲', 'IPL': '🏘️'
+};
+
 export default function AllTransactionsScreen({ navigation }) {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [filterType, setFilterType] = useState('All');
+    const [filterPocket, setFilterPocket] = useState('All');
     const [targetDate, setTargetDate] = useState(new Date());
     const [sortOrder, setSortOrder] = useState('desc'); 
 
     useEffect(() => {
         fetchTransactions();
-    }, [targetDate, filterType, sortOrder]);
+    }, [targetDate, filterType, filterPocket, sortOrder]);
 
     const fetchTransactions = async () => {
         setLoading(true);
@@ -28,6 +36,7 @@ export default function AllTransactionsScreen({ navigation }) {
             const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
             const params = { month: monthStr };
             if (filterType !== 'All') params.type = filterType;
+            if (filterPocket !== 'All') params.pocket = filterPocket;
             if (sortOrder) params.sort = sortOrder;
             
             const response = await api.get('/api/transactions', { params });
@@ -148,21 +157,47 @@ export default function AllTransactionsScreen({ navigation }) {
             </View>
 
             {/* Filters */}
-            <View className="py-3 pl-5 border-b border-border/50">
-                <FlatList
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    data={types}
-                    keyExtractor={item => item}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity 
-                            onPress={() => setFilterType(item)}
-                            className={`px-5 py-2 rounded-full mr-3 border ${filterType === item ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
-                        >
-                            <Text className={`font-bold text-[13px] ${filterType === item ? 'text-primary' : 'text-text-secondary'}`}>{item}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
+            <View className="py-2 border-b border-border/50">
+                {/* Type Filter */}
+                <View className="mb-2">
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        data={types}
+                        keyExtractor={item => `type-${item}`}
+                        contentContainerStyle={{ paddingLeft: 20 }}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity 
+                                onPress={() => setFilterType(item)}
+                                className={`px-5 py-2 rounded-full mr-3 border ${filterType === item ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                            >
+                                <Text className={`font-bold text-[13px] ${filterType === item ? 'text-primary' : 'text-text-secondary'}`}>{item}</Text>
+                            </TouchableOpacity>
+                        )}
+                    />
+                </View>
+                
+                {/* Pocket Filter */}
+                <View>
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        data={pockets}
+                        keyExtractor={item => `pocket-${item}`}
+                        contentContainerStyle={{ paddingLeft: 20 }}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity 
+                                onPress={() => setFilterPocket(item)}
+                                className={`px-5 py-2 rounded-full mr-3 border ${filterPocket === item ? 'bg-primary/20 border-primary shadow-sm' : 'bg-bg-secondary border-border/50'}`}
+                            >
+                                <View className="flex-row items-center gap-1.5">
+                                    {pocketIcons[item] && <Text className="text-[14px]">{pocketIcons[item]}</Text>}
+                                    <Text className={`font-bold text-[13px] ${filterPocket === item ? 'text-primary' : 'text-text-secondary'}`}>{item}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                    />
+                </View>
             </View>
 
             {/* Summary Bar */}
