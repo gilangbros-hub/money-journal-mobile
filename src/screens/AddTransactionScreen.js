@@ -37,7 +37,8 @@ const getBudgetMonths = () => {
         const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         dates.push({
             label: d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
-            value: { month: d.getMonth() + 1, year: d.getFullYear() }
+            value: { month: d.getMonth() + 1, year: d.getFullYear() },
+            key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
         });
     }
     return dates;
@@ -56,30 +57,27 @@ export default function AddTransactionScreen({ navigation }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Closed pockets tracking
-    const [closedPockets, setClosedPockets] = useState([]);
+    // Closed months tracking
+    const [closedMonthKeys, setClosedMonthKeys] = useState([]);
 
     // Success modal
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMsg, setSuccessMsg] = useState({ emoji: '🎉', text: '' });
 
     useEffect(() => {
-        fetchClosedPockets();
-    }, [budgetMonth]);
+        fetchClosedMonths();
+    }, []);
 
-    const fetchClosedPockets = async () => {
+    const fetchClosedMonths = async () => {
         try {
-            const monthStr = `${budgetMonth.value.year}-${String(budgetMonth.value.month).padStart(2, '0')}`;
-            const response = await api.get('/api/budget', { params: { month: monthStr } });
-            if (response.data?.data?.pockets) {
-                const closed = response.data.data.pockets
-                    .filter(p => p.closed)
-                    .map(p => p.pocket);
-                setClosedPockets(closed);
-                // If currently selected pocket is closed, deselect
-                if (closed.includes(pocket)) {
-                    const firstOpen = pockets.find(p => !closed.includes(p.name));
-                    if (firstOpen) setPocket(firstOpen.name);
+            const response = await api.get('/api/budget/closed-months');
+            if (response.data?.data) {
+                const keys = response.data.data.map(c => c.key);
+                setClosedMonthKeys(keys);
+                // If currently selected budget month is closed, pick the first open one
+                if (keys.includes(budgetMonth.key)) {
+                    const firstOpen = budgetMonthsList.find(bm => !keys.includes(bm.key));
+                    if (firstOpen) setBudgetMonth(firstOpen);
                 }
             }
         } catch (err) {
@@ -97,9 +95,9 @@ export default function AddTransactionScreen({ navigation }) {
         setAmount('');
         setNgapain('');
         setType('Eat');
-        const firstOpen = pockets.find(p => !closedPockets.includes(p.name));
-        setPocket(firstOpen ? firstOpen.name : 'Kwintals');
-        setBudgetMonth(budgetMonthsList[1]);
+        setPocket('Kwintals');
+        const firstOpen = budgetMonthsList.find(bm => !closedMonthKeys.includes(bm.key));
+        setBudgetMonth(firstOpen || budgetMonthsList[1]);
         setDate(new Date());
     };
 
@@ -123,7 +121,6 @@ export default function AddTransactionScreen({ navigation }) {
 
             await api.post('/api/transaction', payload);
 
-            // Pick random celebration
             const msg = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
             setSuccessMsg(msg);
             setShowSuccessModal(true);
@@ -224,41 +221,43 @@ export default function AddTransactionScreen({ navigation }) {
                         )}
                     </View>
 
-                    {/* 5. Pocket Source — 3 columns, closed pockets disabled */}
+                    {/* 5. Pocket Source — 3 columns */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Pocket Source</Text>
                         <View className="flex-row flex-wrap justify-between gap-y-2">
-                            {pockets.map((p) => {
-                                const isClosed = closedPockets.includes(p.name);
-                                return (
-                                    <TouchableOpacity 
-                                        key={p.name}
-                                        onPress={() => !isClosed && setPocket(p.name)}
-                                        disabled={isClosed}
-                                        style={isClosed ? { opacity: 0.35 } : {}}
-                                        className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${isClosed ? 'bg-bg-tertiary border-border/30' : pocket === p.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
-                                    >
-                                        <Text className="text-2xl mb-1">{isClosed ? '🔒' : p.icon}</Text>
-                                        <Text className={`text-[9px] text-center font-bold px-1 ${isClosed ? 'text-text-muted' : pocket === p.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={2}>{p.name}</Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                            {pockets.map((p) => (
+                                <TouchableOpacity 
+                                    key={p.name}
+                                    onPress={() => setPocket(p.name)}
+                                    className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${pocket === p.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                >
+                                    <Text className="text-2xl mb-1">{p.icon}</Text>
+                                    <Text className={`text-[9px] text-center font-bold px-1 ${pocket === p.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={2}>{p.name}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </View>
 
-                    {/* 6. Budget Month */}
+                    {/* 6. Budget Month — closed months are disabled */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Budget Month</Text>
                         <View className="flex-row justify-between">
-                            {budgetMonthsList.map((bm) => (
-                                <TouchableOpacity 
-                                    key={bm.label}
-                                    onPress={() => setBudgetMonth(bm)}
-                                    className={`w-[31%] py-3 rounded-xl items-center border ${budgetMonth.label === bm.label ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
-                                >
-                                    <Text className={`font-bold text-xs ${budgetMonth.label === bm.label ? 'text-primary' : 'text-text-secondary'}`}>{bm.label}</Text>
-                                </TouchableOpacity>
-                            ))}
+                            {budgetMonthsList.map((bm) => {
+                                const isClosed = closedMonthKeys.includes(bm.key);
+                                return (
+                                    <TouchableOpacity 
+                                        key={bm.label}
+                                        onPress={() => !isClosed && setBudgetMonth(bm)}
+                                        disabled={isClosed}
+                                        style={isClosed ? { opacity: 0.35 } : {}}
+                                        className={`w-[31%] py-3 rounded-xl items-center border ${isClosed ? 'bg-bg-tertiary border-border/30' : budgetMonth.label === bm.label ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                    >
+                                        <Text className={`font-bold text-xs ${isClosed ? 'text-text-muted' : budgetMonth.label === bm.label ? 'text-primary' : 'text-text-secondary'}`}>
+                                            {isClosed ? `🔒 ${bm.label}` : bm.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
                     

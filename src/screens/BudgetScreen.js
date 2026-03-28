@@ -8,6 +8,8 @@ export default function BudgetScreen() {
     const [summary, setSummary] = useState(null);
     const [health, setHealth] = useState(null);
     const [canEdit, setCanEdit] = useState(false);
+    const [isClosed, setIsClosed] = useState(false);
+    const [isWife, setIsWife] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [targetDate, setTargetDate] = useState(new Date());
@@ -36,6 +38,8 @@ export default function BudgetScreen() {
                 });
                 setHealth(data.health);
                 setCanEdit(data.canEdit);
+                setIsClosed(data.isClosed || false);
+                setIsWife(data.canEdit || data.isClosed); // Wife can see close/reopen even if month is closed
             }
         } catch (error) {
             console.error('Error fetching budgets:', error);
@@ -85,16 +89,19 @@ export default function BudgetScreen() {
         }
     };
 
-    const handleToggleClose = async (budgetId, currentlyClosed) => {
-        const action = currentlyClosed ? 'reopen' : 'close';
+    const handleToggleMonthClose = () => {
+        const action = isClosed ? 'reopen' : 'close';
         Alert.alert(
-            `${currentlyClosed ? 'Reopen' : 'Close'} Budget`,
-            `Are you sure you want to ${action} this budget pocket?`,
+            `${isClosed ? 'Reopen' : 'Close'} This Month`,
+            `Are you sure you want to ${action} the entire budget for this month? ${isClosed ? 'This will allow edits again.' : 'No one will be able to edit budgets or add transactions for this month.'}`,
             [
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Yes', onPress: async () => {
                     try {
-                        await api.patch(`/api/budget/${budgetId}/toggle-close`);
+                        await api.post('/api/budget/toggle-month-close', {
+                            month: targetDate.getMonth() + 1,
+                            year: targetDate.getFullYear()
+                        });
                         fetchBudgets();
                     } catch (error) {
                         Alert.alert('Error', error.response?.data?.message || 'Failed to toggle');
@@ -123,12 +130,41 @@ export default function BudgetScreen() {
                 </TouchableOpacity>
             </View>
 
-            {!canEdit && (
+            {!canEdit && !isClosed && (
                 <View className="px-5 mb-2">
                     <View className="bg-amber/20 px-4 py-3 rounded-xl flex-row items-center border border-amber/30">
                         <Text className="mr-2">👁️</Text>
                         <Text className="text-amber text-sm font-medium">View-only mode. Only Wife can edit.</Text>
                     </View>
+                </View>
+            )}
+
+            {/* Month Close Banner */}
+            {isClosed && (
+                <View className="px-5 mb-2">
+                    <View style={{ backgroundColor: 'rgba(255,77,109,0.1)', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(255,77,109,0.3)' }}>
+                        <Text style={{ color: '#FF4D6D', fontWeight: '700', fontSize: 13 }}>🔒 This month is closed</Text>
+                        {isWife && (
+                            <TouchableOpacity 
+                                onPress={handleToggleMonthClose}
+                                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)' }}
+                            >
+                                <Text style={{ color: '#22C55E', fontSize: 11, fontWeight: '700' }}>🔓 Reopen</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            )}
+
+            {/* Close Month Button (Wife only, when month is open) */}
+            {!isClosed && isWife && (
+                <View className="px-5 mb-2" style={{ alignItems: 'flex-end' }}>
+                    <TouchableOpacity 
+                        onPress={handleToggleMonthClose}
+                        style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,77,109,0.3)' }}
+                    >
+                        <Text style={{ color: '#FF4D6D', fontSize: 11, fontWeight: '700' }}>🔒 Close This Month</Text>
+                    </TouchableOpacity>
                 </View>
             )}
 
@@ -178,27 +214,12 @@ export default function BudgetScreen() {
                                             <View className="flex-row items-center">
                                                 <Text className="text-2xl mr-3">{b.icon || '💸'}</Text>
                                                 <Text className="text-text-primary font-bold text-[15px]">{b.pocket}</Text>
-                                                {b.closed && (
-                                                    <View style={{ backgroundColor: 'rgba(255,77,109,0.2)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginLeft: 8 }}>
-                                                        <Text style={{ color: '#FF4D6D', fontSize: 10, fontWeight: '700' }}>🔒 Closed</Text>
-                                                    </View>
-                                                )}
                                             </View>
-                                            <View className="flex-row items-center">
-                                                {canEdit && b._id && (
-                                                    <TouchableOpacity 
-                                                        onPress={() => handleToggleClose(b._id, b.closed)}
-                                                        style={{ marginRight: 12, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: b.closed ? 'rgba(34,197,94,0.3)' : 'rgba(255,77,109,0.3)' }}
-                                                    >
-                                                        <Text style={{ color: b.closed ? '#22C55E' : '#FF4D6D', fontSize: 10, fontWeight: '700' }}>{b.closed ? '🔓 Open' : '🔒 Close'}</Text>
-                                                    </TouchableOpacity>
-                                                )}
-                                                {canEdit && !b.closed && (
-                                                    <TouchableOpacity onPress={() => openEditModal(b)}>
-                                                        <Text className="text-primary text-xs font-bold underline">Edit</Text>
-                                                    </TouchableOpacity>
-                                                )}
-                                            </View>
+                                            {canEdit && (
+                                                <TouchableOpacity onPress={() => openEditModal(b)}>
+                                                    <Text className="text-primary text-xs font-bold underline">Edit</Text>
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
 
                                         <View className="flex-row justify-between mb-2">
