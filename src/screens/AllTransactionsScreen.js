@@ -32,15 +32,12 @@ export default function AllTransactionsScreen({ navigation }) {
             
             const response = await api.get('/api/transactions', { params });
             
+            // Backend returns a flat array from GET /api/transactions
             let data = [];
-            if (response.data && response.data.data) {
-                 if (Array.isArray(response.data.data)) {
-                     data = response.data.data;
-                 } else if (response.data.data.transactions) {
-                     data = response.data.data.transactions;
-                 }
-            } else if (Array.isArray(response.data)) {
-                 data = response.data;
+            if (Array.isArray(response.data)) {
+                data = response.data;
+            } else if (response.data && Array.isArray(response.data.data)) {
+                data = response.data.data;
             }
             
             data = data.sort((a, b) => {

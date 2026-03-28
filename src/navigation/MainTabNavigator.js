@@ -16,14 +16,16 @@ function CustomTabBar({ state, descriptors, navigation }) {
 
   return (
     <View style={styles.tabBarContainer}>
-      {/* Floating + Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('Add')}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {/* Floating + Button — hidden on Add screen */}
+      {state.routes[state.index]?.name !== 'Add' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('Add')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Tab items */}
       <View style={styles.tabBar}>

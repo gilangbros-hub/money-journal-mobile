@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../api/axios';
@@ -17,6 +17,17 @@ const pockets = [
     { name: 'Weekday Transport', icon: '🚌' }, { name: 'Weekend Transport', icon: '🚗' },
     { name: 'Investasi', icon: '📈' }, { name: 'Bandung', icon: '⛰️' },
     { name: 'Sedeqah', icon: '🤲' }, { name: 'IPL', icon: '🏘️' }
+];
+
+const celebrationMessages = [
+    { emoji: '🎉', text: 'Great job tracking!' },
+    { emoji: '💪', text: 'Discipline = Freedom!' },
+    { emoji: '🔥', text: "You're on fire!" },
+    { emoji: '✨', text: 'Every Rupiah counts!' },
+    { emoji: '🏆', text: 'Champion move!' },
+    { emoji: '📊', text: 'Data is power!' },
+    { emoji: '🚀', text: 'Finances on track!' },
+    { emoji: '💎', text: 'Smart money move!' }
 ];
 
 const getBudgetMonths = () => {
@@ -45,10 +56,51 @@ export default function AddTransactionScreen({ navigation }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Closed pockets tracking
+    const [closedPockets, setClosedPockets] = useState([]);
+
+    // Success modal
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMsg, setSuccessMsg] = useState({ emoji: '🎉', text: '' });
+
+    useEffect(() => {
+        fetchClosedPockets();
+    }, [budgetMonth]);
+
+    const fetchClosedPockets = async () => {
+        try {
+            const monthStr = `${budgetMonth.value.year}-${String(budgetMonth.value.month).padStart(2, '0')}`;
+            const response = await api.get('/api/budget', { params: { month: monthStr } });
+            if (response.data?.data?.pockets) {
+                const closed = response.data.data.pockets
+                    .filter(p => p.closed)
+                    .map(p => p.pocket);
+                setClosedPockets(closed);
+                // If currently selected pocket is closed, deselect
+                if (closed.includes(pocket)) {
+                    const firstOpen = pockets.find(p => !closed.includes(p.name));
+                    if (firstOpen) setPocket(firstOpen.name);
+                }
+            }
+        } catch (err) {
+            // silently ignore
+        }
+    };
+
     const handleDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShowDatePicker(Platform.OS === 'ios');
         setDate(currentDate);
+    };
+
+    const resetForm = () => {
+        setAmount('');
+        setNgapain('');
+        setType('Eat');
+        const firstOpen = pockets.find(p => !closedPockets.includes(p.name));
+        setPocket(firstOpen ? firstOpen.name : 'Kwintals');
+        setBudgetMonth(budgetMonthsList[1]);
+        setDate(new Date());
     };
 
     const handleSave = async () => {
@@ -70,19 +122,29 @@ export default function AddTransactionScreen({ navigation }) {
             };
 
             await api.post('/api/transaction', payload);
-            Alert.alert('Success', 'Transaction saved successfully!', [
-                { text: 'OK', onPress: () => {
-                    setAmount('');
-                    setNgapain('');
-                    navigation.navigate('Dashboard');
-                }}
-            ]);
+
+            // Pick random celebration
+            const msg = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
+            setSuccessMsg(msg);
+            setShowSuccessModal(true);
         } catch (error) {
             console.error('Save error', error);
-            Alert.alert('Error', 'Failed to save transaction.');
+            const errMsg = error.response?.data?.message || 'Failed to save transaction.';
+            Alert.alert('Error', errMsg);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleAddAnother = () => {
+        setShowSuccessModal(false);
+        resetForm();
+    };
+
+    const handleGoHome = () => {
+        setShowSuccessModal(false);
+        resetForm();
+        navigation.navigate('Dashboard');
     };
 
     return (
@@ -162,20 +224,25 @@ export default function AddTransactionScreen({ navigation }) {
                         )}
                     </View>
 
-                    {/* 5. Pocket Source — 3 columns */}
+                    {/* 5. Pocket Source — 3 columns, closed pockets disabled */}
                     <View className="mb-4">
                         <Text className="text-text-secondary font-medium text-[13px] mb-2">Pocket Source</Text>
                         <View className="flex-row flex-wrap justify-between gap-y-2">
-                            {pockets.map((p) => (
-                                <TouchableOpacity 
-                                    key={p.name}
-                                    onPress={() => setPocket(p.name)}
-                                    className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${pocket === p.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
-                                >
-                                    <Text className="text-2xl mb-1">{p.icon}</Text>
-                                    <Text className={`text-[9px] text-center font-bold px-1 ${pocket === p.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={2}>{p.name}</Text>
-                                </TouchableOpacity>
-                            ))}
+                            {pockets.map((p) => {
+                                const isClosed = closedPockets.includes(p.name);
+                                return (
+                                    <TouchableOpacity 
+                                        key={p.name}
+                                        onPress={() => !isClosed && setPocket(p.name)}
+                                        disabled={isClosed}
+                                        style={isClosed ? { opacity: 0.35 } : {}}
+                                        className={`w-[31%] py-3 rounded-2xl items-center justify-center border ${isClosed ? 'bg-bg-tertiary border-border/30' : pocket === p.name ? 'bg-primary/20 border-primary' : 'bg-bg-secondary border-border/50'}`}
+                                    >
+                                        <Text className="text-2xl mb-1">{isClosed ? '🔒' : p.icon}</Text>
+                                        <Text className={`text-[9px] text-center font-bold px-1 ${isClosed ? 'text-text-muted' : pocket === p.name ? 'text-primary' : 'text-text-secondary'}`} numberOfLines={2}>{p.name}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
 
@@ -198,7 +265,7 @@ export default function AddTransactionScreen({ navigation }) {
                 </ScrollView>
             </KeyboardAvoidingView>
 
-            {/* Floating Save Button — sits above tab bar with gap */}
+            {/* Floating Save Button */}
             <View style={{ position: 'absolute', bottom: 100, left: 20, right: 20, zIndex: 100 }}>
                 <TouchableOpacity 
                     style={{ width: '100%', backgroundColor: '#7C3AED', borderRadius: 16, height: 56, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 }}
@@ -212,6 +279,31 @@ export default function AddTransactionScreen({ navigation }) {
                     )}
                 </TouchableOpacity>
             </View>
+
+            {/* Success Modal */}
+            <Modal visible={showSuccessModal} transparent={true} animationType="fade">
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+                    <View style={{ backgroundColor: '#0F172A', width: '100%', borderRadius: 24, padding: 28, borderWidth: 1, borderColor: '#334155', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 56, marginBottom: 12 }}>{successMsg.emoji}</Text>
+                        <Text style={{ fontSize: 22, fontWeight: '800', color: '#F8FAFC', marginBottom: 6 }}>Transaction Saved!</Text>
+                        <Text style={{ fontSize: 14, color: '#94A3B8', marginBottom: 24, textAlign: 'center' }}>{successMsg.text}</Text>
+                        
+                        <TouchableOpacity 
+                            style={{ width: '100%', backgroundColor: '#7C3AED', borderRadius: 16, height: 52, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}
+                            onPress={handleAddAnother}
+                        >
+                            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>➕ Add Another Transaction</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            style={{ width: '100%', backgroundColor: '#1E293B', borderRadius: 16, height: 52, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#334155' }}
+                            onPress={handleGoHome}
+                        >
+                            <Text style={{ color: '#F8FAFC', fontWeight: '700', fontSize: 15 }}>🏠 Go to Dashboard</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
             
         </SafeAreaView>
     );
