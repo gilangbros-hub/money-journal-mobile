@@ -4,10 +4,10 @@
     "slug": "money-journal-app",
     "version": "1.2.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0F"
     },
@@ -15,9 +15,9 @@
       "package": "com.gilangbros.moneyjournal",
       "adaptiveIcon": {
         "backgroundColor": "#0A0A0F",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/logo.png"
       }
     },
     "web": {

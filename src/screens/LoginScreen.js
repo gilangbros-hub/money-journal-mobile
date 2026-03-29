@@ -52,10 +52,13 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
                 <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}} className="px-6 py-8">
                     
                     <View className="items-center mb-10">
-                        <View className="w-16 h-16 rounded-2xl bg-bg-secondary border border-border/50 items-center justify-center mb-6 shadow-sm">
-                            <Text className="text-3xl">CB</Text>
+                        <View className="w-24 h-24 rounded-3xl bg-bg-secondary border border-border/50 items-center justify-center mb-6 shadow-sm overflow-hidden">
+                            <Image 
+                                source={require('../../assets/logo.png')} 
+                                style={{ width: '100%', height: '100%', resizeMode: 'cover' }} 
+                            />
                         </View>
-                        <Text className="text-[26px] font-bold text-text-primary mb-2">Welcome Back</Text>
+                        <Text className="text-[26px] font-bold text-text-primary mb-2">Money Journal</Text>
                         <Text className="text-[15px] text-text-secondary">Sign in to your account</Text>
                     </View>
 
