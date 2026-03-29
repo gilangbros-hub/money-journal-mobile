@@ -152,7 +152,7 @@ export default function AddTransactionScreen({ navigation }) {
                     <Text className="text-[20px] font-bold text-text-primary">Add Transaction</Text>
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 80 }} className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }} className="flex-1" showsVerticalScrollIndicator={false}>
                     
                     {/* 1. Expense Type — 3 columns */}
                     <View className="mt-3 mb-4">
@@ -260,24 +260,24 @@ export default function AddTransactionScreen({ navigation }) {
                             })}
                         </View>
                     </View>
+
+                    {/* Save Button — inline at end of form */}
+                    <View style={{ marginTop: 8, marginBottom: 24 }}>
+                        <TouchableOpacity 
+                            style={{ width: '100%', backgroundColor: '#7C3AED', borderRadius: 16, height: 56, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 }}
+                            onPress={handleSave}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Save Transaction</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
                     
                 </ScrollView>
             </KeyboardAvoidingView>
-
-            {/* Floating Save Button */}
-            <View style={{ position: 'absolute', bottom: 100, left: 20, right: 20, zIndex: 100 }}>
-                <TouchableOpacity 
-                    style={{ width: '100%', backgroundColor: '#7C3AED', borderRadius: 16, height: 56, alignItems: 'center', justifyContent: 'center', elevation: 6, shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 }}
-                    onPress={handleSave}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <ActivityIndicator color="#FFFFFF" />
-                    ) : (
-                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Save Transaction</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
 
             {/* Success Modal */}
             <Modal visible={showSuccessModal} transparent={true} animationType="fade">

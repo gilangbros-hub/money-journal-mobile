@@ -91,11 +91,11 @@ export default function MainTabNavigator({ setIsAuthenticated }) {
 const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'relative',
-    alignItems: 'center',
   },
   fab: {
     position: 'absolute',
     top: -28,
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
