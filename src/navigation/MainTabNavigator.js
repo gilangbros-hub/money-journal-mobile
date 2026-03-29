@@ -15,18 +15,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
   const visibleRoutes = state.routes.filter(r => r.name !== 'Add');
 
   return (
-    <View style={styles.tabBarContainer}>
-      {/* Floating + Button — hidden on Add screen */}
-      {state.routes[state.index]?.name !== 'Add' && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => navigation.navigate('Add')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
-
+    <View style={{ position: 'relative' }}>
       {/* Tab items */}
       <View style={styles.tabBar}>
         {visibleRoutes.map((route) => {
@@ -59,6 +48,17 @@ function CustomTabBar({ state, descriptors, navigation }) {
           );
         })}
       </View>
+
+      {/* Floating + Button — truly floating, bottom-right, hidden on Add screen */}
+      {state.routes[state.index]?.name !== 'Add' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('Add')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -89,29 +89,26 @@ export default function MainTabNavigator({ setIsAuthenticated }) {
 }
 
 const styles = StyleSheet.create({
-  tabBarContainer: {
-    position: 'relative',
-  },
   fab: {
     position: 'absolute',
-    top: -28,
+    bottom: 24,
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#7C3AED',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    elevation: 8,
+    elevation: 12,
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   fabText: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '300',
     marginTop: -2,
   },
