@@ -9,6 +9,12 @@ module.exports = {
           light: "#A78BFA",
           dark: "#5B21B6",
         },
+        brandBlue: {
+          DEFAULT: "#1677FF",
+          light: "#5AA6FF",
+          dark: "#1256C8",
+          soft: "rgba(22, 119, 255, 0.16)",
+        },
         coral: {
           DEFAULT: "#FF4D6D",
           light: "#FF8FA3",
