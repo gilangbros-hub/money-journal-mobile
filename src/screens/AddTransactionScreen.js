@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    ScrollView,
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Alert,
-    Modal,
+    View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -52,7 +53,18 @@ const celebrationMessages = [
     { emoji: '💎', text: 'Smart money move!' },
 ];
 
-const heroPillStyle = {
+const cardShell = {
+    backgroundColor: '#1256C8',
+    borderWidth: 1,
+    borderColor: 'rgba(90, 166, 255, 0.28)',
+    shadowColor: '#1677FF',
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 7,
+};
+
+const glassPill = {
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderColor: 'rgba(255,255,255,0.18)',
 };
@@ -80,7 +92,6 @@ const formatDateTimeLabel = (value) => {
     const dateLabel = value.toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
-        year: 'numeric',
     });
     const timeLabel = value.toLocaleTimeString([], {
         hour: '2-digit',
@@ -89,15 +100,23 @@ const formatDateTimeLabel = (value) => {
     return `${dateLabel} • ${timeLabel}`;
 };
 
-function SelectionRail({ title, subtitle, items, selectedValue, onSelect }) {
+function CardContainer({ children, style }) {
     return (
-        <View className="mb-5">
-            <View className="flex-row items-end justify-between mb-3 px-1">
-                <Text className="text-text-primary text-[16px] font-bold">{title}</Text>
-                <Text className="text-text-muted text-[12px]">{subtitle}</Text>
-            </View>
+        <View className="rounded-[32px] overflow-hidden" style={[cardShell, style]}>
+            {children}
+        </View>
+    );
+}
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
+function ChipSelector({ title, items, selectedValue, onSelect }) {
+    return (
+        <View className="mb-4">
+            <Text className="text-white/75 text-[12px] font-semibold mb-3">{title}</Text>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 10 }}
+            >
                 {items.map((item) => {
                     const isSelected = selectedValue === item.name;
                     return (
@@ -105,27 +124,16 @@ function SelectionRail({ title, subtitle, items, selectedValue, onSelect }) {
                             key={item.name}
                             onPress={() => onSelect(item.name)}
                             activeOpacity={0.85}
-                            className="w-[96px] rounded-[24px] border px-3 py-3.5 mr-3"
+                            className="mr-3 px-3 py-2.5 rounded-[18px] border flex-row items-center"
                             style={{
-                                backgroundColor: isSelected ? 'rgba(22, 119, 255, 0.16)' : '#1E293B',
-                                borderColor: isSelected ? item.accent : 'rgba(148, 163, 184, 0.18)',
-                                shadowColor: isSelected ? item.accent : '#000000',
-                                shadowOpacity: isSelected ? 0.16 : 0.06,
-                                shadowRadius: 10,
-                                shadowOffset: { width: 0, height: 4 },
-                                elevation: isSelected ? 5 : 1,
+                                backgroundColor: isSelected ? 'rgba(255,255,255,0.16)' : 'rgba(5, 14, 37, 0.22)',
+                                borderColor: isSelected ? item.accent : 'rgba(255,255,255,0.12)',
                             }}
                         >
-                            <View
-                                className="w-11 h-11 rounded-[16px] items-center justify-center mb-3"
-                                style={{ backgroundColor: `${item.accent}22` }}
-                            >
-                                <Text style={{ fontSize: 22 }}>{item.icon}</Text>
-                            </View>
+                            <Text style={{ fontSize: 14, marginRight: 6 }}>{item.icon}</Text>
                             <Text
                                 className="text-[12px] font-bold"
-                                style={{ color: isSelected ? '#F8FAFC' : '#CBD5E1', minHeight: 34 }}
-                                numberOfLines={2}
+                                style={{ color: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.8)' }}
                             >
                                 {item.name}
                             </Text>
@@ -137,9 +145,60 @@ function SelectionRail({ title, subtitle, items, selectedValue, onSelect }) {
     );
 }
 
+function CategorySheet({ visible, items, selectedValue, onClose, onSelect, bottomInset }) {
+    return (
+        <Modal visible={visible} transparent animationType="fade">
+            <View className="flex-1 justify-end bg-black/60">
+                <TouchableOpacity className="flex-1" activeOpacity={1} onPress={onClose} />
+                <View
+                    className="bg-bg rounded-t-[28px] border-t border-border/60 px-5 pt-5"
+                    style={{ paddingBottom: Math.max(bottomInset, 16) + 12 }}
+                >
+                    <View className="w-12 h-1.5 rounded-full bg-border self-center mb-5" />
+                    <Text className="text-text-primary text-[18px] font-bold mb-1">Choose Category</Text>
+                    <Text className="text-text-muted text-[13px] mb-4">Tap one to update the main transaction card.</Text>
+                    <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
+                        {items.map((item) => {
+                            const isSelected = selectedValue === item.name;
+                            return (
+                                <TouchableOpacity
+                                    key={item.name}
+                                    onPress={() => {
+                                        onSelect(item.name);
+                                        onClose();
+                                    }}
+                                    className="rounded-[22px] border px-4 py-4 mb-3 flex-row items-center justify-between"
+                                    style={{
+                                        backgroundColor: isSelected ? 'rgba(22, 119, 255, 0.16)' : '#1E293B',
+                                        borderColor: isSelected ? item.accent : 'rgba(148, 163, 184, 0.14)',
+                                    }}
+                                >
+                                    <View className="flex-row items-center flex-1">
+                                        <View
+                                            className="w-11 h-11 rounded-[16px] items-center justify-center mr-3"
+                                            style={{ backgroundColor: `${item.accent}22` }}
+                                        >
+                                            <Text style={{ fontSize: 20 }}>{item.icon}</Text>
+                                        </View>
+                                        <Text className="text-text-primary text-[14px] font-bold flex-1">{item.name}</Text>
+                                    </View>
+                                    <Text className="text-[16px]" style={{ color: isSelected ? item.accent : '#64748B' }}>
+                                        {isSelected ? '✓' : '›'}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
 export default function AddTransactionScreen({ navigation }) {
-    const budgetMonthsList = getBudgetMonths();
+    const budgetMonthsList = useMemo(() => getBudgetMonths(), []);
     const insets = useSafeAreaInsets();
+    const detailAnim = useRef(new Animated.Value(0)).current;
 
     const [amount, setAmount] = useState('');
     const [ngapain, setNgapain] = useState('');
@@ -152,6 +211,10 @@ export default function AddTransactionScreen({ navigation }) {
     const [closedMonthKeys, setClosedMonthKeys] = useState([]);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMsg, setSuccessMsg] = useState({ emoji: '🎉', text: '' });
+    const [showCategorySheet, setShowCategorySheet] = useState(false);
+    const [isEditingAmount, setIsEditingAmount] = useState(false);
+    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+    const amountInputRef = useRef(null);
 
     const selectedType = types.find((item) => item.name === type) || types[0];
     const selectedPocket = pockets.find((item) => item.name === pocket) || pockets[0];
@@ -161,13 +224,26 @@ export default function AddTransactionScreen({ navigation }) {
         fetchClosedMonths();
     }, []);
 
+    useEffect(() => {
+        Animated.timing(detailAnim, {
+            toValue: isDetailsExpanded ? 1 : 0,
+            duration: 180,
+            useNativeDriver: false,
+        }).start();
+    }, [detailAnim, isDetailsExpanded]);
+
+    useEffect(() => {
+        if (isEditingAmount && amountInputRef.current) {
+            amountInputRef.current.focus();
+        }
+    }, [isEditingAmount]);
+
     const fetchClosedMonths = async () => {
         try {
             const response = await api.get('/api/budget/closed-months');
             if (response.data?.data) {
                 const keys = response.data.data.map((closedMonth) => closedMonth.key);
                 setClosedMonthKeys(keys);
-
                 if (keys.includes(budgetMonth.key)) {
                     const firstOpen = budgetMonthsList.find((month) => !keys.includes(month.key));
                     if (firstOpen) setBudgetMonth(firstOpen);
@@ -196,6 +272,8 @@ export default function AddTransactionScreen({ navigation }) {
         const firstOpen = budgetMonthsList.find((month) => !closedMonthKeys.includes(month.key));
         setBudgetMonth(firstOpen || budgetMonthsList[1]);
         setDate(new Date());
+        setIsEditingAmount(false);
+        setIsDetailsExpanded(false);
     };
 
     const handleSave = async () => {
@@ -241,13 +319,23 @@ export default function AddTransactionScreen({ navigation }) {
         navigation.navigate('Dashboard');
     };
 
+    const detailsHeight = detailAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 210],
+    });
+
+    const detailsOpacity = detailAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+    });
+
     return (
         <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
                 <View className="px-5 pt-2 pb-3 flex-row items-center justify-between">
                     <View>
                         <Text className="text-text-primary text-[24px] font-bold">Add Transaction</Text>
-                        <Text className="text-text-muted text-[13px] mt-1">Track it cleanly, then move on.</Text>
+                        <Text className="text-text-muted text-[13px] mt-1">Everything lives in one editable card.</Text>
                     </View>
                     <View className="w-11 h-11 rounded-2xl bg-bg-secondary border border-border/50 items-center justify-center">
                         <Text style={{ fontSize: 20 }}>{selectedType.icon}</Text>
@@ -258,141 +346,160 @@ export default function AddTransactionScreen({ navigation }) {
                     className="flex-1"
                     contentContainerStyle={{
                         paddingHorizontal: 20,
-                        paddingTop: 6,
-                        paddingBottom: 176 + insets.bottom,
+                        paddingTop: 8,
+                        paddingBottom: 160 + insets.bottom,
                     }}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View
-                        className="rounded-[32px] px-5 pt-5 pb-6 mb-6 overflow-hidden"
-                        style={{
-                            backgroundColor: '#1256C8',
-                            borderWidth: 1,
-                            borderColor: 'rgba(90, 166, 255, 0.28)',
-                            shadowColor: '#1677FF',
-                            shadowOpacity: 0.22,
-                            shadowRadius: 18,
-                            shadowOffset: { width: 0, height: 10 },
-                            elevation: 7,
-                        }}
-                    >
-                        <View className="flex-row justify-between items-start mb-6">
-                            <View
-                                className="rounded-full border px-3 py-2 flex-row items-center"
-                                style={heroPillStyle}
+                    <CardContainer>
+                        <View className="px-5 pt-5 pb-6">
+                            <View className="flex-row justify-between items-center mb-5">
+                                <TouchableOpacity
+                                    className="rounded-full border px-3 py-2 flex-row items-center max-w-[58%]"
+                                    style={glassPill}
+                                    onPress={() => setShowCategorySheet(true)}
+                                    activeOpacity={0.85}
+                                >
+                                    <Text style={{ fontSize: 14, marginRight: 6 }}>{selectedType.icon}</Text>
+                                    <Text className="text-white text-[12px] font-semibold mr-2" numberOfLines={1}>
+                                        {selectedType.name}
+                                    </Text>
+                                    <Text className="text-white/70 text-[14px]">›</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    className="rounded-full border px-3 py-2 flex-row items-center"
+                                    style={glassPill}
+                                    onPress={() => setShowDatePicker(true)}
+                                    activeOpacity={0.85}
+                                >
+                                    <Text style={{ fontSize: 14, marginRight: 6 }}>🗓️</Text>
+                                    <Text className="text-white text-[12px] font-semibold mr-2">{formatDateTimeLabel(date)}</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <View className="mb-5">
+                                <Text className="text-white/75 text-[12px] font-semibold mb-2">Description</Text>
+                                <TextInput
+                                    className="text-white text-[16px] font-semibold border rounded-[20px] px-4 py-3"
+                                    style={{
+                                        borderColor: ngapain ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.12)',
+                                        backgroundColor: 'rgba(5, 14, 37, 0.18)',
+                                    }}
+                                    placeholder="What did you spend on?"
+                                    placeholderTextColor="rgba(255,255,255,0.6)"
+                                    value={ngapain}
+                                    onChangeText={setNgapain}
+                                />
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={() => setIsEditingAmount(true)}
+                                activeOpacity={0.92}
+                                className="rounded-[28px] border px-4 py-5 mb-5 items-center"
+                                style={{
+                                    borderColor: isEditingAmount ? '#FFFFFF' : 'rgba(255,255,255,0.12)',
+                                    backgroundColor: isEditingAmount ? 'rgba(5, 14, 37, 0.28)' : 'rgba(5, 14, 37, 0.18)',
+                                }}
                             >
-                                <Text style={{ fontSize: 14, marginRight: 6 }}>{selectedType.icon}</Text>
-                                <Text className="text-white text-[12px] font-semibold">{selectedType.name}</Text>
-                            </View>
-                            <View
-                                className="rounded-full border px-3 py-2 flex-row items-center"
-                                style={heroPillStyle}
-                            >
-                                <Text style={{ fontSize: 14, marginRight: 6 }}>🗓️</Text>
-                                <Text className="text-white text-[12px] font-semibold">{budgetMonth.label}</Text>
-                            </View>
-                        </View>
+                                <Text className="text-white/75 text-[12px] font-semibold mb-2">Amount</Text>
+                                {isEditingAmount ? (
+                                    <View className="w-full items-center">
+                                        <Text className="text-white/75 text-[16px] font-bold mb-1">Rp</Text>
+                                        <TextInput
+                                            ref={amountInputRef}
+                                            className="text-white text-[40px] font-extrabold tracking-tight text-center w-full"
+                                            placeholder="0"
+                                            placeholderTextColor="rgba(255,255,255,0.45)"
+                                            keyboardType="numeric"
+                                            value={amount}
+                                            onChangeText={handleAmountChange}
+                                            onBlur={() => setIsEditingAmount(false)}
+                                            selectTextOnFocus
+                                        />
+                                    </View>
+                                ) : (
+                                    <>
+                                        <Text className="text-white/75 text-[16px] font-bold mb-1">Rp</Text>
+                                        <Text className="text-white text-[42px] font-extrabold tracking-tight">{formattedAmount}</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
 
-                        <Text className="text-white/80 text-[13px] font-medium mb-2">Description</Text>
-                        <TextInput
-                            className="text-white text-[16px] font-semibold mb-8"
-                            placeholder="What did you spend on?"
-                            placeholderTextColor="rgba(255,255,255,0.68)"
-                            value={ngapain}
-                            onChangeText={setNgapain}
-                        />
+                            <ChipSelector title="Expense Type" items={types} selectedValue={type} onSelect={setType} />
+                            <ChipSelector title="Pocket Source" items={pockets} selectedValue={pocket} onSelect={setPocket} />
 
-                        <Text className="text-white/80 text-[13px] font-medium mb-3 text-center">Amount</Text>
-                        <View className="items-center mb-5">
-                            <Text className="text-white/80 text-[16px] font-bold mb-1">Rp</Text>
-                            <Text className="text-white text-[42px] font-extrabold tracking-tight">{formattedAmount}</Text>
-                        </View>
-
-                        <View className="rounded-[24px] bg-black/15 border border-white/10 px-4 py-3">
-                            <Text className="text-white/80 text-[12px] font-medium mb-2">Edit amount</Text>
-                            <TextInput
-                                className="text-white text-[20px] font-bold"
-                                placeholder="0"
-                                placeholderTextColor="rgba(255,255,255,0.45)"
-                                keyboardType="numeric"
-                                value={amount}
-                                onChangeText={handleAmountChange}
-                            />
-                        </View>
-
-                        <View className="flex-row items-center justify-between mt-5">
-                            <View
-                                className="rounded-full border px-3 py-2 flex-row items-center"
-                                style={heroPillStyle}
-                            >
-                                <Text style={{ fontSize: 14, marginRight: 6 }}>{selectedPocket.icon}</Text>
-                                <Text className="text-white text-[12px] font-semibold">{selectedPocket.name}</Text>
-                            </View>
-                            <Text className="text-white/75 text-[12px]">{formatDateTimeLabel(date)}</Text>
-                        </View>
-                    </View>
-
-                    <SelectionRail
-                        title="Expense Type"
-                        subtitle={selectedType.name}
-                        items={types}
-                        selectedValue={type}
-                        onSelect={setType}
-                    />
-
-                    <SelectionRail
-                        title="Pocket Source"
-                        subtitle={selectedPocket.name}
-                        items={pockets}
-                        selectedValue={pocket}
-                        onSelect={setPocket}
-                    />
-
-                    <View className="bg-bg-secondary rounded-[28px] border border-border/50 px-4 py-4">
-                        <Text className="text-text-primary text-[16px] font-bold mb-4">Timing & Budget</Text>
-
-                        <TouchableOpacity
-                            className="bg-bg rounded-[20px] border border-border/40 px-4 py-4 mb-4"
-                            onPress={() => setShowDatePicker(true)}
-                            activeOpacity={0.85}
-                        >
-                            <Text className="text-text-muted text-[12px] font-medium mb-1">Date & Time</Text>
-                            <View className="flex-row items-center justify-between">
-                                <Text className="text-text-primary text-[14px] font-bold">{formatDateTimeLabel(date)}</Text>
-                                <Text className="text-brandBlue text-[18px]">›</Text>
-                            </View>
-                        </TouchableOpacity>
-
-                        <Text className="text-text-muted text-[12px] font-medium mb-3 px-1">Budget Month</Text>
-                        <View className="flex-row justify-between">
-                            {budgetMonthsList.map((month) => {
-                                const isClosed = closedMonthKeys.includes(month.key);
-                                const isSelected = budgetMonth.label === month.label;
-                                return (
-                                    <TouchableOpacity
-                                        key={month.label}
-                                        onPress={() => !isClosed && setBudgetMonth(month)}
-                                        disabled={isClosed}
-                                        activeOpacity={0.85}
-                                        className="w-[31%] rounded-[18px] px-2 py-3 border items-center"
-                                        style={{
-                                            backgroundColor: isClosed ? '#334155' : isSelected ? 'rgba(22, 119, 255, 0.16)' : '#0F172A',
-                                            borderColor: isClosed ? 'rgba(148, 163, 184, 0.14)' : isSelected ? '#1677FF' : 'rgba(148, 163, 184, 0.18)',
-                                            opacity: isClosed ? 0.45 : 1,
-                                        }}
-                                    >
-                                        <Text
-                                            className="text-[12px] font-bold"
-                                            style={{ color: isClosed ? '#94A3B8' : isSelected ? '#5AA6FF' : '#CBD5E1' }}
-                                        >
-                                            {isClosed ? `Locked ${month.label}` : month.label}
+                            <View className="mt-1 rounded-[24px] border border-white/12 bg-black/15 overflow-hidden">
+                                <TouchableOpacity
+                                    className="px-4 py-4 flex-row items-center justify-between"
+                                    onPress={() => setIsDetailsExpanded((current) => !current)}
+                                    activeOpacity={0.85}
+                                >
+                                    <View>
+                                        <Text className="text-white text-[14px] font-bold">Timing & Budget</Text>
+                                        <Text className="text-white/65 text-[12px] mt-1">
+                                            {formatDateTimeLabel(date)} • {budgetMonth.label}
                                         </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                                    </View>
+                                    <Text
+                                        className="text-white/80 text-[18px]"
+                                        style={{ transform: [{ rotate: isDetailsExpanded ? '90deg' : '0deg' }] }}
+                                    >
+                                        ›
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <Animated.View
+                                    style={{
+                                        height: detailsHeight,
+                                        opacity: detailsOpacity,
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    <View className="px-4 pb-4">
+                                        <TouchableOpacity
+                                            className="bg-white/8 rounded-[18px] border border-white/10 px-4 py-4 mb-4"
+                                            onPress={() => setShowDatePicker(true)}
+                                            activeOpacity={0.85}
+                                        >
+                                            <Text className="text-white/65 text-[12px] font-medium mb-1">Date & Time</Text>
+                                            <Text className="text-white text-[14px] font-bold">{formatDateTimeLabel(date)}</Text>
+                                        </TouchableOpacity>
+
+                                        <Text className="text-white/65 text-[12px] font-medium mb-3 px-1">Budget Month</Text>
+                                        <View className="flex-row justify-between">
+                                            {budgetMonthsList.map((month) => {
+                                                const isClosed = closedMonthKeys.includes(month.key);
+                                                const isSelected = budgetMonth.label === month.label;
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={month.label}
+                                                        onPress={() => !isClosed && setBudgetMonth(month)}
+                                                        disabled={isClosed}
+                                                        activeOpacity={0.85}
+                                                        className="w-[31%] rounded-[18px] px-2 py-3 border items-center"
+                                                        style={{
+                                                            backgroundColor: isClosed ? 'rgba(51, 65, 85, 0.9)' : isSelected ? 'rgba(255,255,255,0.16)' : 'rgba(5, 14, 37, 0.24)',
+                                                            borderColor: isClosed ? 'rgba(148, 163, 184, 0.14)' : isSelected ? '#5AA6FF' : 'rgba(255,255,255,0.12)',
+                                                            opacity: isClosed ? 0.45 : 1,
+                                                        }}
+                                                    >
+                                                        <Text
+                                                            className="text-[12px] font-bold"
+                                                            style={{ color: isClosed ? '#94A3B8' : isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.82)' }}
+                                                        >
+                                                            {isClosed ? `Locked ${month.label}` : month.label}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
+                                        </View>
+                                    </View>
+                                </Animated.View>
+                            </View>
                         </View>
-                    </View>
+                    </CardContainer>
 
                     {showDatePicker && (
                         <DateTimePicker
@@ -430,14 +537,19 @@ export default function AddTransactionScreen({ navigation }) {
                         disabled={loading}
                         activeOpacity={0.9}
                     >
-                        {loading ? (
-                            <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Save Transaction</Text>
-                        )}
+                        {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Save Transaction</Text>}
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
+
+            <CategorySheet
+                visible={showCategorySheet}
+                items={types}
+                selectedValue={type}
+                onClose={() => setShowCategorySheet(false)}
+                onSelect={setType}
+                bottomInset={insets.bottom}
+            />
 
             <Modal visible={showSuccessModal} transparent animationType="fade">
                 <View
@@ -476,15 +588,7 @@ export default function AddTransactionScreen({ navigation }) {
                         <Text style={{ fontSize: 24, fontWeight: '800', color: '#F8FAFC', marginBottom: 8 }}>
                             Transaction Saved
                         </Text>
-                        <Text
-                            style={{
-                                fontSize: 14,
-                                color: '#94A3B8',
-                                marginBottom: 24,
-                                textAlign: 'center',
-                                lineHeight: 20,
-                            }}
-                        >
+                        <Text style={{ fontSize: 14, color: '#94A3B8', marginBottom: 24, textAlign: 'center', lineHeight: 20 }}>
                             {successMsg.text}
                         </Text>
 
