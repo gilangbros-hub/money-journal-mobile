@@ -39,7 +39,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
-              style={styles.tabItem}
+              style={[styles.tabItem, isFocused && styles.tabItemActive]}
               activeOpacity={0.7}
             >
               <Text style={{ fontSize: 22, color, marginBottom: 6 }}>{icon}</Text>
@@ -91,20 +91,20 @@ export default function MainTabNavigator({ setIsAuthenticated }) {
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 96,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 102,
+    right: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     backgroundColor: '#7C3AED',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
     elevation: 8,
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.26,
+    shadowRadius: 14,
   },
   fabText: {
     color: '#FFFFFF',
@@ -115,17 +115,31 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#1E293B',
-    borderTopColor: '#334155',
-    borderTopWidth: 1,
-    paddingBottom: 16,
-    paddingTop: 12,
-    height: 80,
+    borderColor: 'rgba(148, 163, 184, 0.12)',
+    borderWidth: 1,
+    marginHorizontal: 16,
+    marginBottom: 18,
+    paddingBottom: 10,
+    paddingTop: 10,
+    height: 72,
     justifyContent: 'space-around',
     alignItems: 'center',
+    borderRadius: 28,
+    shadowColor: '#020617',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 6,
+    borderRadius: 22,
+    height: 52,
+  },
+  tabItemActive: {
+    backgroundColor: 'rgba(255,255,255,0.07)',
   },
 });

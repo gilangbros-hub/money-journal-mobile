@@ -58,10 +58,10 @@ const cardShell = {
     borderWidth: 1,
     borderColor: 'rgba(90, 166, 255, 0.28)',
     shadowColor: '#1677FF',
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 7,
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
 };
 
 const glassPill = {
@@ -529,9 +529,9 @@ export default function AddTransactionScreen({ navigation }) {
                             justifyContent: 'center',
                             shadowColor: '#7C3AED',
                             shadowOffset: { width: 0, height: 8 },
-                            shadowOpacity: 0.28,
-                            shadowRadius: 16,
-                            elevation: 8,
+                            shadowOpacity: 0.22,
+                            shadowRadius: 14,
+                            elevation: 6,
                         }}
                         onPress={handleSave}
                         disabled={loading}
