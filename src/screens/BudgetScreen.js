@@ -3,56 +3,21 @@ import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
 
-const cardStyles = {
-    blue: {
-        backgroundColor: '#1256C8',
-        borderColor: 'rgba(90, 166, 255, 0.28)',
-        shadowColor: '#1677FF',
-    },
-    purple: {
-        backgroundColor: '#4C1D95',
-        borderColor: 'rgba(167, 139, 250, 0.25)',
-        shadowColor: '#7C3AED',
-    },
-    coral: {
-        backgroundColor: '#7F1D1D',
-        borderColor: 'rgba(255, 77, 109, 0.24)',
-        shadowColor: '#FF4D6D',
-    },
-    slate: {
-        backgroundColor: '#1E293B',
-        borderColor: 'rgba(148, 163, 184, 0.14)',
-        shadowColor: '#0F172A',
-    },
-};
-
-function ColorCard({ variant = 'slate', children, className = '' }) {
-    const palette = cardStyles[variant];
+function Card({ children, style }) {
     return (
         <View
-            className={`rounded-[30px] border ${className}`}
-            style={{
-                backgroundColor: palette.backgroundColor,
-                borderColor: palette.borderColor,
-                shadowColor: palette.shadowColor,
-                shadowOpacity: 0.12,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 8 },
-                elevation: 4,
-            }}
+            style={[{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 20,
+                padding: 16,
+                elevation: 2,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+            }, style]}
         >
             {children}
-        </View>
-    );
-}
-
-function BudgetMetric({ label, value, isLast = false }) {
-    return (
-        <View className={`flex-1 rounded-[20px] px-4 py-4 bg-white/10 ${isLast ? '' : 'mr-3'}`}>
-            <Text className="text-white/70 text-[11px] font-semibold mb-1">{label}</Text>
-            <Text className="text-white font-bold text-[13px]" numberOfLines={1}>
-                {value}
-            </Text>
         </View>
     );
 }
@@ -71,9 +36,7 @@ export default function BudgetScreen() {
     const [editAmount, setEditAmount] = useState('');
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchBudgets();
-    }, [targetDate]);
+    useEffect(() => { fetchBudgets(); }, [targetDate]);
 
     const rp = (amount) => `Rp ${amount?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
@@ -102,17 +65,8 @@ export default function BudgetScreen() {
         }
     };
 
-    const handlePrevMonth = () => {
-        const newDate = new Date(targetDate);
-        newDate.setMonth(newDate.getMonth() - 1);
-        setTargetDate(newDate);
-    };
-
-    const handleNextMonth = () => {
-        const newDate = new Date(targetDate);
-        newDate.setMonth(newDate.getMonth() + 1);
-        setTargetDate(newDate);
-    };
+    const handlePrevMonth = () => { const d = new Date(targetDate); d.setMonth(d.getMonth() - 1); setTargetDate(d); };
+    const handleNextMonth = () => { const d = new Date(targetDate); d.setMonth(d.getMonth() + 1); setTargetDate(d); };
 
     const openEditModal = (pocketData) => {
         if (!canEdit) return;
@@ -167,177 +121,177 @@ export default function BudgetScreen() {
     };
 
     const monthLabel = targetDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-    const strongestBudget = budgets.reduce((current, item) => {
-        if (!current) return item;
-        return (item.percentage || 0) > (current.percentage || 0) ? item : current;
-    }, null);
+
+    const getHealthLabel = () => {
+        if (!health) return null;
+        if (typeof health === 'string') return health;
+        if (health.emoji && health.label) return `${health.emoji} ${health.label}`;
+        if (health.label) return health.label;
+        if (health.status) return health.status;
+        return null;
+    };
+
+    const getProgressColor = (pct) => {
+        if (pct >= 90) return '#EF4444';
+        if (pct >= 75) return '#F59E0B';
+        return '#22C55E';
+    };
 
     return (
-        <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
-            <View className="px-5 py-2">
-                <Text className="text-[24px] font-bold text-text-primary">Budget Tracker</Text>
-                <Text className="text-[13px] text-text-muted mt-1">Compact cards for every pocket and state.</Text>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'left', 'right']}>
+            {/* Header */}
+            <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1A1A1A' }}>Budget Tracker</Text>
             </View>
 
-            <View className="px-5 py-2 flex-row items-center justify-between">
-                <TouchableOpacity onPress={handlePrevMonth} className="w-11 h-11 bg-bg-secondary rounded-2xl items-center justify-center border border-border/50">
-                    <Text className="text-text-secondary text-lg font-bold">‹</Text>
+            {/* Month Nav */}
+            <View style={{ paddingHorizontal: 20, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>‹</Text>
                 </TouchableOpacity>
-                <View className="px-4 py-2 rounded-full bg-bg-secondary border border-border/40">
-                    <Text className="text-[14px] font-bold text-text-primary">{monthLabel}</Text>
+                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF9E6' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{monthLabel}</Text>
                 </View>
-                <TouchableOpacity onPress={handleNextMonth} className="w-11 h-11 bg-bg-secondary rounded-2xl items-center justify-center border border-border/50">
-                    <Text className="text-text-secondary text-lg font-bold">›</Text>
+                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>›</Text>
                 </TouchableOpacity>
             </View>
 
             {loading ? (
-                <View className="flex-1 justify-center items-center">
-                    <ActivityIndicator size="large" color="#7C3AED" />
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#F5A623" />
                 </View>
             ) : (
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 8 }} className="flex-1" showsVerticalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100, paddingTop: 8 }} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                    {/* Summary Card */}
                     {summary && (
-                        <ColorCard variant="blue" className="p-5 mb-5">
-                            <Text className="text-white/75 text-[12px] font-semibold mb-2">Total Budget</Text>
-                            <Text className="text-white text-[32px] font-extrabold tracking-tight mb-4">{summary.totalBudget}</Text>
-
-                            <View className="flex-row">
-                                <BudgetMetric label="Spent" value={summary.totalSpent} />
-                                <BudgetMetric label="Remaining" value={summary.totalRemaining} isLast />
+                        <Card style={{ marginBottom: 12 }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 4 }}>Total Budget</Text>
+                            <Text style={{ fontSize: 28, fontWeight: '800', color: '#1A1A1A', marginBottom: 8 }}>{summary.totalBudget}</Text>
+                            <View style={{ flexDirection: 'row', gap: 12 }}>
+                                <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Spent</Text>
+                                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>{summary.totalSpent}</Text>
+                                </View>
+                                <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Remaining</Text>
+                                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#22C55E' }}>{summary.totalRemaining}</Text>
+                                </View>
                             </View>
-                        </ColorCard>
+                        </Card>
                     )}
 
-                    <ColorCard variant={isClosed ? 'coral' : 'purple'} className="p-5 mb-5">
-                        <View className="flex-row justify-between items-start">
-                            <View className="flex-1 pr-3">
-                                <Text className="text-white text-[17px] font-bold mb-1">
+                    {/* Month Status Card */}
+                    <Card style={{ marginBottom: 12 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <View style={{ flex: 1, paddingRight: 12 }}>
+                                <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 }}>
                                     {isClosed ? 'Month Closed' : 'Month Status'}
                                 </Text>
-                                <Text className="text-white/70 text-[12px]">
+                                <Text style={{ fontSize: 12, fontWeight: '600', color: '#666666', lineHeight: 17 }}>
                                     {isClosed
-                                        ? 'Budgets and transactions are locked for this month.'
+                                        ? 'Budgets and transactions are locked.'
                                         : canEdit
-                                            ? 'You can still edit this month budget.'
+                                            ? 'You can still edit this month.'
                                             : 'View-only mode. Only Wife can edit.'}
                                 </Text>
                             </View>
-                            {isWife ? (
+                            {isWife && (
                                 <TouchableOpacity
                                     onPress={handleToggleMonthClose}
-                                    className="rounded-full px-4 py-2 border"
-                                    style={{ borderColor: 'rgba(255,255,255,0.18)', backgroundColor: 'rgba(255,255,255,0.1)' }}
+                                    style={{
+                                        paddingHorizontal: 14,
+                                        paddingVertical: 7,
+                                        borderRadius: 20,
+                                        backgroundColor: isClosed ? '#F0FDF4' : '#FEF2F2',
+                                    }}
                                 >
-                                    <Text className="text-white text-[11px] font-bold">
+                                    <Text style={{ fontSize: 11, fontWeight: '700', color: isClosed ? '#22C55E' : '#EF4444' }}>
                                         {isClosed ? 'Reopen' : 'Close Month'}
                                     </Text>
                                 </TouchableOpacity>
-                            ) : null}
+                            )}
                         </View>
-
-                        {health ? (
-                            <View className="mt-4 rounded-[22px] px-4 py-4 bg-white/10">
-                                <Text className="text-white/70 text-[11px] font-semibold mb-1">Budget Health</Text>
-                                <Text className="text-white font-bold text-[13px]">
-                                    {typeof health === 'string' ? health : JSON.stringify(health)}
-                                </Text>
+                        {getHealthLabel() && (
+                            <View style={{ marginTop: 12, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                                <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Budget Health</Text>
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{getHealthLabel()}</Text>
                             </View>
-                        ) : null}
-                    </ColorCard>
+                        )}
+                    </Card>
 
-                    <View className="flex-row justify-between items-end mb-4 px-1">
-                        <View>
-                            <Text className="text-[17px] font-bold text-text-primary">Pocket Allocations</Text>
-                            <Text className="text-[12px] text-text-muted mt-1">
-                                {strongestBudget ? `${strongestBudget.pocket} is the hottest pocket right now.` : 'No pocket budget yet.'}
-                            </Text>
-                        </View>
-                    </View>
+                    {/* Section Title */}
+                    <Text style={{ fontSize: 15, fontWeight: '800', color: '#1A1A1A', marginBottom: 8, marginTop: 4, paddingHorizontal: 2 }}>
+                        Pocket Allocations
+                    </Text>
 
+                    {/* Pocket Cards */}
                     {budgets.length > 0 ? (
-                        budgets.map((budgetItem, index) => {
-                            const progress = Math.min(budgetItem.percentage || 0, 100);
-                            const isDanger = progress >= 90;
-                            const isWarning = progress >= 75 && progress < 90;
-                            const variant = isDanger ? 'coral' : isWarning ? 'purple' : 'slate';
-                            const progressColor = isDanger ? '#FF4D6D' : isWarning ? '#F59E0B' : '#22C55E';
+                        budgets.map((item, index) => {
+                            const progress = Math.min(item.percentage || 0, 100);
+                            const progressColor = getProgressColor(progress);
 
                             return (
-                                <ColorCard
-                                    key={budgetItem.pocket || index}
-                                    variant={variant}
-                                    className={`p-5 ${index === budgets.length - 1 ? 'mb-0' : 'mb-4'}`}
-                                >
-                                    <View className="flex-row justify-between items-start mb-4">
-                                        <View className="flex-row items-center flex-1 pr-3">
-                                            <View
-                                                className="w-12 h-12 rounded-[18px] items-center justify-center mr-3"
-                                                style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
-                                            >
-                                                <Text className="text-[22px]">{budgetItem.icon || '💸'}</Text>
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="text-white font-bold text-[15px] mb-1">{budgetItem.pocket}</Text>
-                                                <Text className="text-white/70 text-[11px] font-medium">
-                                                    {budgetItem.formattedSpent || rp(budgetItem.spent)} spent
-                                                </Text>
-                                            </View>
+                                <Card key={item.pocket || index} style={{ marginBottom: index === budgets.length - 1 ? 0 : 12 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                                        <Text style={{ fontSize: 20, marginRight: 10 }}>{item.icon || '💸'}</Text>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ fontSize: 14, fontWeight: '700', color: '#1A1A1A' }}>{item.pocket}</Text>
+                                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginTop: 2 }}>
+                                                {item.formattedSpent || rp(item.spent)} spent
+                                            </Text>
                                         </View>
-
-                                        {canEdit ? (
-                                            <TouchableOpacity
-                                                onPress={() => openEditModal(budgetItem)}
-                                                className="rounded-full px-3 py-2 border"
-                                                style={{ borderColor: 'rgba(255,255,255,0.18)', backgroundColor: 'rgba(255,255,255,0.1)' }}
-                                            >
-                                                <Text className="text-white text-[11px] font-bold">Edit</Text>
+                                        {canEdit && (
+                                            <TouchableOpacity onPress={() => openEditModal(item)}>
+                                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#F5A623' }}>Edit</Text>
                                             </TouchableOpacity>
-                                        ) : null}
+                                        )}
                                     </View>
 
-                                    <View className="flex-row justify-between mb-2">
-                                        <Text className="text-white/70 text-[11px] font-semibold">Usage</Text>
-                                        <Text className="text-white text-[12px] font-bold">{progress}%</Text>
+                                    {/* Progress */}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>Usage</Text>
+                                        <Text style={{ fontSize: 12, fontWeight: '700', color: progressColor }}>{progress}%</Text>
+                                    </View>
+                                    <View style={{ height: 6, borderRadius: 3, backgroundColor: '#FFF9E6', overflow: 'hidden', marginBottom: 12 }}>
+                                        <View style={{ height: '100%', borderRadius: 3, width: `${progress}%`, backgroundColor: progressColor }} />
                                     </View>
 
-                                    <View className="w-full h-2.5 rounded-full overflow-hidden mb-4 bg-white/10">
-                                        <View className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: progressColor }} />
-                                    </View>
-
-                                    <View className="flex-row">
-                                        <View className="flex-1 rounded-[20px] px-4 py-4 mr-3 bg-white/10">
-                                            <Text className="text-white/70 text-[11px] font-semibold mb-1">Budget</Text>
-                                            <Text className="text-white font-bold text-[13px]">{budgetItem.formattedBudget || rp(budgetItem.budget)}</Text>
+                                    {/* Budget / Left */}
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Budget</Text>
+                                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{item.formattedBudget || rp(item.budget)}</Text>
                                         </View>
-                                        <View className="flex-1 rounded-[20px] px-4 py-4 bg-white/10">
-                                            <Text className="text-white/70 text-[11px] font-semibold mb-1">Left</Text>
-                                            <Text className="text-white font-bold text-[13px]">{budgetItem.formattedRemaining || rp(budgetItem.remaining)}</Text>
+                                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Left</Text>
+                                            <Text style={{ fontSize: 13, fontWeight: '700', color: item.isOver ? '#EF4444' : '#22C55E' }}>{item.formattedRemaining || rp(item.remaining)}</Text>
                                         </View>
                                     </View>
-                                </ColorCard>
+                                </Card>
                             );
                         })
                     ) : (
-                        <Text className="text-center text-text-muted py-5">No budgets found.</Text>
+                        <Text style={{ textAlign: 'center', color: '#666666', paddingVertical: 20 }}>No budgets found.</Text>
                     )}
                 </ScrollView>
             )}
 
+            {/* Edit Modal */}
             <Modal visible={isEditModalVisible} transparent animationType="fade">
-                <View className="flex-1 bg-black/60 justify-center items-center px-5">
-                    <View className="bg-bg w-full rounded-[30px] p-6 border border-border/50 shadow-lg">
-                        <Text className="text-xl font-bold text-text-primary mb-2">Edit Budget</Text>
-                        <Text className="text-[15px] font-semibold mb-5 text-text-secondary">
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+                    <View style={{ backgroundColor: '#FFFFFF', width: '100%', borderRadius: 20, padding: 20, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 12 }}>
+                        <Text style={{ fontSize: 17, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 }}>Edit Budget</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 16 }}>
                             {editingPocket?.icon} {editingPocket?.pocket}
                         </Text>
 
-                        <View className="flex-row items-center bg-bg-secondary rounded-[22px] p-4 mb-6 border border-border/50">
-                            <Text className="text-xl font-bold text-text-primary mr-2">Rp</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF9E6', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 16 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '800', color: '#F5A623', marginRight: 8 }}>Rp</Text>
                             <TextInput
-                                className="flex-1 text-2xl font-bold text-text-primary"
+                                style={{ flex: 1, fontSize: 20, fontWeight: '700', color: '#1A1A1A' }}
                                 placeholder="0"
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor="#AAAAAA"
                                 keyboardType="numeric"
                                 value={editAmount}
                                 onChangeText={setEditAmount}
@@ -345,19 +299,19 @@ export default function BudgetScreen() {
                             />
                         </View>
 
-                        <View className="flex-row justify-between">
+                        <View style={{ flexDirection: 'row', gap: 12 }}>
                             <TouchableOpacity
-                                className="flex-1 bg-bg-secondary py-4 rounded-[20px] items-center mr-3 border border-border/50"
                                 onPress={() => setEditModalVisible(false)}
+                                style={{ flex: 1, backgroundColor: '#F5F5F0', paddingVertical: 14, borderRadius: 16, alignItems: 'center' }}
                             >
-                                <Text className="text-text-primary font-bold">Cancel</Text>
+                                <Text style={{ fontWeight: '600', color: '#333333' }}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                className="flex-1 bg-primary py-4 rounded-[20px] items-center"
                                 onPress={handleSaveBudget}
                                 disabled={saving}
+                                style={{ flex: 1, backgroundColor: '#F5A623', paddingVertical: 14, borderRadius: 16, alignItems: 'center' }}
                             >
-                                {saving ? <ActivityIndicator color="#FFFFFF" size="small" /> : <Text className="text-white font-bold">Save</Text>}
+                                {saving ? <ActivityIndicator color="#1A1A1A" size="small" /> : <Text style={{ fontWeight: '700', color: '#1A1A1A' }}>Save</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>

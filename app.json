@@ -5,18 +5,17 @@
     "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0A0F"
+      "backgroundColor": "#FFFFFF"
     },
     "android": {
       "package": "com.gilangbros.moneyjournal",
       "adaptiveIcon": {
-        "backgroundColor": "#0A0A0F",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/logo.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/logo.png"
       }
     },

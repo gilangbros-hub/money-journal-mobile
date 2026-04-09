@@ -3,6 +3,23 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, Keyb
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
 
+function Card({ children, style }) {
+    return (
+        <View style={[{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 20,
+            padding: 20,
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+        }, style]}>
+            {children}
+        </View>
+    );
+}
+
 export default function LoginScreen({ navigation, setIsAuthenticated }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -19,24 +36,15 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
         setError('');
 
         try {
-            // The mobile app uses the dedicated JSON endpoint `/api/auth/login`
-            const response = await api.post('/api/auth/login', {
-                username,
-                password
-            });
-            
-            // Assume success if no error was thrown
-            // In a better setup, the API would return JSON instead of a 302 redirect
+            await api.post('/api/auth/login', { username, password });
             setIsAuthenticated(true);
         } catch (err) {
-            console.error('Login error:', err);
-            // If the backend returns a 400/401 with a message
-            if (err.response && err.response.data && err.response.data.message) {
-                 setError(err.response.data.message);
-            } else if (err.response && err.response.status === 400) {
-                 setError('Invalid username or password');
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err.response?.status === 400) {
+                setError('Invalid username or password');
             } else {
-                 setError('Network error. Please try again.');
+                setError('Network error. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -44,70 +52,93 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-bg">
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-                className="flex-1"
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
             >
-                <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}} className="px-6 py-8">
-                    
-                    <View className="items-center mb-10">
-                        <View className="w-24 h-24 rounded-3xl bg-bg-secondary border border-border/50 items-center justify-center mb-6 shadow-sm overflow-hidden">
-                            <Image 
-                                source={require('../../assets/logo.png')} 
-                                style={{ width: '100%', height: '100%', resizeMode: 'cover' }} 
+                <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 32 }}>
+                    {/* Logo */}
+                    <View style={{ alignItems: 'center', marginBottom: 32 }}>
+                        <View style={{ width: 80, height: 80, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 16, overflow: 'hidden' }}>
+                            <Image
+                                source={require('../../assets/logo.png')}
+                                style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
                             />
                         </View>
-                        <Text className="text-[26px] font-bold text-text-primary mb-2">Money Journal</Text>
-                        <Text className="text-[15px] text-text-secondary">Sign in to your account</Text>
+                        <Text style={{ fontSize: 24, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 }}>Money Journal</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666' }}>Sign in to your account</Text>
                     </View>
 
-                    <View className="bg-bg-secondary border border-border/50 rounded-3xl p-6 shadow-sm">
-                        <Text className="text-xl font-bold text-text-primary mb-6">Sign In</Text>
+                    {/* Form Card */}
+                    <Card>
+                        <Text style={{ fontSize: 17, fontWeight: '800', color: '#1A1A1A', marginBottom: 16 }}>Sign In</Text>
 
                         {error ? (
-                            <View className="bg-coral/10 p-3 rounded-xl mb-5 border border-coral/20">
-                                <Text className="text-coral text-sm font-medium">{error}</Text>
+                            <View style={{ backgroundColor: '#FEF2F2', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginBottom: 16 }}>
+                                <Text style={{ color: '#EF4444', fontSize: 13, fontWeight: '600' }}>{error}</Text>
                             </View>
                         ) : null}
 
-                        <View className="mb-5">
-                            <Text className="text-sm font-medium text-text-secondary mb-2">Username</Text>
+                        <View style={{ marginBottom: 14 }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 6 }}>Username</Text>
                             <TextInput
-                                className="w-full bg-bg-tertiary text-text-primary py-4 px-4 rounded-2xl text-[15px]"
+                                style={{
+                                    backgroundColor: '#F5F5F0',
+                                    borderRadius: 14,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 12,
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                    color: '#1A1A1A',
+                                }}
                                 placeholder="your_username"
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor="#AAAAAA"
                                 value={username}
                                 onChangeText={setUsername}
                                 autoCapitalize="none"
                             />
                         </View>
 
-                        <View className="mb-6">
-                            <Text className="text-sm font-medium text-text-secondary mb-2">Password</Text>
+                        <View style={{ marginBottom: 20 }}>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 6 }}>Password</Text>
                             <TextInput
-                                className="w-full bg-bg-tertiary text-text-primary py-4 px-4 rounded-2xl text-[15px]"
+                                style={{
+                                    backgroundColor: '#F5F5F0',
+                                    borderRadius: 14,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 12,
+                                    fontSize: 14,
+                                    fontWeight: '600',
+                                    color: '#1A1A1A',
+                                }}
                                 placeholder="••••••••"
-                                placeholderTextColor="#94A3B8"
+                                placeholderTextColor="#AAAAAA"
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry
                             />
                         </View>
 
-                        <TouchableOpacity 
-                            className="w-full bg-primary rounded-2xl h-14 items-center justify-center flex-row"
+                        <TouchableOpacity
                             onPress={handleLogin}
                             disabled={loading}
+                            activeOpacity={0.9}
+                            style={{
+                                backgroundColor: '#F5A623',
+                                borderRadius: 28,
+                                height: 52,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
                         >
                             {loading ? (
-                                <ActivityIndicator color="#FFFFFF" />
+                                <ActivityIndicator color="#1A1A1A" />
                             ) : (
-                                <Text className="text-white font-bold text-[15px]">Sign In</Text>
+                                <Text style={{ color: '#1A1A1A', fontWeight: '800', fontSize: 15 }}>Sign In</Text>
                             )}
                         </TouchableOpacity>
-                    </View>
-
+                    </Card>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>

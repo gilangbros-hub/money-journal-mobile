@@ -4,7 +4,7 @@ This repository contains the fully native React Native variant of the Catat Boro
 
 ## ✨ Features
 - **Fully Native Architecture**: Built on React Native using Expo SDK.
-- **NativeWind Styling**: Uses Tailwind CSS v3 tokens integrated seamlessly with native layers ensuring the "Tropis Neon" dark theme thrives everywhere.
+- **NativeWind Styling**: Uses Tailwind CSS tokens integrated seamlessly with native layers ensuring a clean, light/white, minimalist card UI everywhere.
 - **Axios Networking**: Secure connection handling session cookies inherently compatible with the Express.js endpoints.
 
 ## 🚀 Getting Started

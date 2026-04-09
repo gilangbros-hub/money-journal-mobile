@@ -4,82 +4,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-gifted-charts';
 import api from '../api/axios';
 
-const chartColors = ['#FF4D6D', '#7C3AED', '#22C55E', '#F59E0B', '#06B6D4', '#F97316', '#3B82F6', '#EC4899', '#FBBF24', '#14B8A6'];
+const chartColors = ['#F5A623', '#FF4D6D', '#22C55E', '#1677FF', '#06B6D4', '#F97316', '#3B82F6', '#EC4899', '#FBBF24', '#14B8A6'];
 const typeEmojis = {
-    Eat: '🍽️',
-    Snack: '🍿',
-    Groceries: '🛒',
-    Laundry: '🧺',
-    Bensin: '⛽',
-    Flazz: '💳',
-    'Home Appliance': '🏠',
-    'Jumat Berkah': '🤲',
-    'Uang Sampah': '🗑️',
-    'Uang Keamanan': '👮',
-    Medicine: '💊',
-    Others: '📦',
+    Eat: '🍽️', Snack: '🍿', Groceries: '🛒', Laundry: '🧺',
+    Bensin: '⛽', Flazz: '💳', 'Home Appliance': '🏠', 'Jumat Berkah': '🤲',
+    'Uang Sampah': '🗑️', 'Uang Keamanan': '👮', Medicine: '💊', Others: '📦',
 };
 
-const cardStyles = {
-    blue: {
-        backgroundColor: '#1256C8',
-        borderColor: 'rgba(90, 166, 255, 0.28)',
-        shadowColor: '#1677FF',
-    },
-    purple: {
-        backgroundColor: '#4C1D95',
-        borderColor: 'rgba(167, 139, 250, 0.25)',
-        shadowColor: '#7C3AED',
-    },
-    emerald: {
-        backgroundColor: '#14532D',
-        borderColor: 'rgba(74, 222, 128, 0.18)',
-        shadowColor: '#22C55E',
-    },
-    slate: {
-        backgroundColor: '#1E293B',
-        borderColor: 'rgba(148, 163, 184, 0.14)',
-        shadowColor: '#0F172A',
-    },
-};
-
-function ColorCard({ variant = 'slate', children, className = '' }) {
-    const palette = cardStyles[variant];
+function Card({ children, style }) {
     return (
         <View
-            className={`rounded-[30px] border ${className}`}
-            style={{
-                backgroundColor: palette.backgroundColor,
-                borderColor: palette.borderColor,
-                shadowColor: palette.shadowColor,
-                shadowOpacity: 0.12,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 8 },
-                elevation: 4,
-            }}
+            style={[{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 20,
+                padding: 16,
+                elevation: 2,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+            }, style]}
         >
             {children}
-        </View>
-    );
-}
-
-function StatMiniCard({ label, value, tone, isLast = false }) {
-    const tones = {
-        coral: { bg: 'rgba(255,255,255,0.14)', text: '#FFE4EA' },
-        lime: { bg: 'rgba(255,255,255,0.14)', text: '#DCFCE7' },
-        blue: { bg: 'rgba(255,255,255,0.14)', text: '#DBEAFE' },
-    };
-    const currentTone = tones[tone] || tones.blue;
-
-    return (
-        <View
-            className={`flex-1 rounded-[22px] px-4 py-4 ${isLast ? '' : 'mr-3'}`}
-            style={{ backgroundColor: currentTone.bg }}
-        >
-            <Text className="text-white/70 text-[11px] font-semibold mb-1">{label}</Text>
-            <Text className="text-[13px] font-bold" style={{ color: currentTone.text }} numberOfLines={1}>
-                {value}
-            </Text>
         </View>
     );
 }
@@ -91,23 +37,14 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
     const [avatar, setAvatar] = useState('👤');
     const [targetDate, setTargetDate] = useState(new Date());
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    useEffect(() => {
-        fetchDashboard();
-    }, [targetDate]);
+    useEffect(() => { fetchProfile(); }, []);
+    useEffect(() => { fetchDashboard(); }, [targetDate]);
 
     const fetchProfile = async () => {
         try {
             const response = await api.get('/api/auth/me');
-            if (response.data?.user) {
-                setAvatar(response.data.user.avatar || '👤');
-            }
-        } catch (error) {
-            // ignore silently
-        }
+            if (response.data?.user) setAvatar(response.data.user.avatar || '👤');
+        } catch (error) { /* silent */ }
     };
 
     const fetchDashboard = async () => {
@@ -115,50 +52,32 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
         try {
             const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
             const response = await api.get('/api/dashboard/summary', { params: { month: monthStr } });
-            if (response.data?.success) {
-                setData(response.data.data);
-            }
+            if (response.data?.success) setData(response.data.data);
         } catch (error) {
             console.error('Error fetching dashboard:', error);
-            if (error.response?.status === 401) {
-                setIsAuthenticated(false);
-            }
+            if (error.response?.status === 401) setIsAuthenticated(false);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchProfile();
-        fetchDashboard();
-    };
-
-    const handlePrevMonth = () => {
-        const newDate = new Date(targetDate);
-        newDate.setMonth(newDate.getMonth() - 1);
-        setTargetDate(newDate);
-    };
-
-    const handleNextMonth = () => {
-        const newDate = new Date(targetDate);
-        newDate.setMonth(newDate.getMonth() + 1);
-        setTargetDate(newDate);
-    };
+    const onRefresh = () => { setRefreshing(true); fetchProfile(); fetchDashboard(); };
+    const handlePrevMonth = () => { const d = new Date(targetDate); d.setMonth(d.getMonth() - 1); setTargetDate(d); };
+    const handleNextMonth = () => { const d = new Date(targetDate); d.setMonth(d.getMonth() + 1); setTargetDate(d); };
 
     if (loading && !refreshing) {
         return (
-            <SafeAreaView className="flex-1 bg-bg justify-center items-center">
-                <ActivityIndicator size="large" color="#7C3AED" />
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#F5A623" />
             </SafeAreaView>
         );
     }
 
     if (!data) {
         return (
-            <SafeAreaView className="flex-1 bg-bg justify-center items-center">
-                <Text className="text-white text-lg">Failed to load data</Text>
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: '#1A1A1A', fontSize: 15, fontWeight: '600' }}>Failed to load data</Text>
             </SafeAreaView>
         );
     }
@@ -167,88 +86,82 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
         value: cat.total,
         color: chartColors[index % chartColors.length],
         text: `${cat.percentage}%`,
-        textColor: '#fff',
+        textColor: '#333333',
     }));
 
     const monthLabel = targetDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
     const topCategory = data.categories?.[0];
 
     return (
-        <SafeAreaView className="flex-1 bg-bg" edges={['top', 'left', 'right']}>
-            <View className="px-5 py-2 flex-row justify-between items-center">
-                <View>
-                    <Text className="text-[24px] font-bold text-text-primary">Dashboard</Text>
-                    <Text className="text-[13px] text-text-muted mt-1">Compact cards, quick money read.</Text>
-                </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'left', 'right']}>
+            {/* Header */}
+            <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1A1A1A' }}>Dashboard</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                    <View className="w-11 h-11 bg-bg-secondary rounded-2xl items-center justify-center border border-border/50">
-                        <Text className="text-lg">{avatar}</Text>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 18 }}>{avatar}</Text>
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <View className="px-5 py-2 flex-row items-center justify-between">
-                <TouchableOpacity onPress={handlePrevMonth} className="w-11 h-11 bg-bg-secondary rounded-2xl items-center justify-center border border-border/50">
-                    <Text className="text-text-secondary text-lg font-bold">‹</Text>
+            {/* Month Nav */}
+            <View style={{ paddingHorizontal: 20, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>‹</Text>
                 </TouchableOpacity>
-                <View className="px-4 py-2 rounded-full bg-bg-secondary border border-border/40">
-                    <Text className="text-[14px] font-bold text-text-primary">{monthLabel}</Text>
+                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF9E6' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{monthLabel}</Text>
                 </View>
-                <TouchableOpacity onPress={handleNextMonth} className="w-11 h-11 bg-bg-secondary rounded-2xl items-center justify-center border border-border/50">
-                    <Text className="text-text-secondary text-lg font-bold">›</Text>
+                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>›</Text>
                 </TouchableOpacity>
             </View>
 
             <ScrollView
                 contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 }}
-                className="flex-1"
+                style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7C3AED" />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F5A623" />}
             >
-                <ColorCard variant="blue" className="p-5 mb-5">
-                    <Text className="text-white/75 text-[12px] font-semibold mb-2">Total Spending</Text>
-                    <Text className="text-white text-[34px] font-extrabold tracking-tight mb-4">{data.total.formatted}</Text>
-
-                    <View className="flex-row">
-                        <StatMiniCard label="Transactions" value={`${data.recent?.length || 0} recent`} tone="blue" />
-                        <StatMiniCard
-                            label="Trend"
-                            value={
-                                data.comparison?.hasLastMonth
+                {/* Total Spending Card */}
+                <Card style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 4 }}>Total Spending</Text>
+                    <Text style={{ fontSize: 28, fontWeight: '800', color: '#1A1A1A', marginBottom: 8 }}>{data.total.formatted}</Text>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Transactions</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{data.recent?.length || 0} recent</Text>
+                        </View>
+                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Trend</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: data.comparison?.increased ? '#EF4444' : '#22C55E' }}>
+                                {data.comparison?.hasLastMonth
                                     ? `${data.comparison.increased ? '+' : '-'}${data.comparison.difference}`
-                                    : 'No last month'
-                            }
-                            tone="coral"
-                            isLast
-                        />
-                    </View>
-                </ColorCard>
-
-                <ColorCard variant="purple" className="p-5 mb-5">
-                    <View className="flex-row justify-between items-start mb-4">
-                        <View>
-                            <Text className="text-white text-[17px] font-bold mb-1">Category Pulse</Text>
-                            <Text className="text-white/70 text-[12px]">
-                                {topCategory ? `${topCategory.category} leads this month` : 'No spending yet'}
+                                    : 'No prior month'}
                             </Text>
                         </View>
-                        <View className="rounded-full px-3 py-1.5 bg-white/10 border border-white/10">
-                            <Text className="text-white text-[11px] font-bold">{data.categories.length} groups</Text>
-                        </View>
+                    </View>
+                </Card>
+
+                {/* Category Breakdown Card */}
+                <Card style={{ marginBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>Categories</Text>
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>{data.categories.length} groups</Text>
                     </View>
 
                     {data.categories.length > 0 ? (
                         <>
-                            <View className="items-center mb-5 mt-1">
+                            <View style={{ alignItems: 'center', marginBottom: 16 }}>
                                 <PieChart
                                     donut
-                                    innerRadius={58}
-                                    radius={84}
+                                    innerRadius={50}
+                                    radius={72}
                                     data={pieData}
                                     centerLabelComponent={() => (
                                         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '700' }}>Top</Text>
-                                            <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '800' }}>
+                                            <Text style={{ color: '#666666', fontSize: 10, fontWeight: '600' }}>Top</Text>
+                                            <Text style={{ color: '#1A1A1A', fontSize: 16, fontWeight: '800' }}>
                                                 {topCategory ? `${topCategory.percentage}%` : '0%'}
                                             </Text>
                                         </View>
@@ -256,82 +169,76 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                                 />
                             </View>
 
-                            <View>
-                                {data.categories.slice(0, 4).map((cat, i) => (
-                                    <View
-                                        key={cat.category}
-                                        className={`rounded-[22px] px-4 py-3 mb-3 flex-row items-center ${i === 3 ? 'mb-0' : ''}`}
-                                        style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
-                                    >
-                                        <View
-                                            className="w-11 h-11 rounded-[16px] items-center justify-center mr-3"
-                                            style={{ backgroundColor: `${chartColors[i % chartColors.length]}22` }}
-                                        >
-                                            <Text className="text-[20px]">{cat.icon || typeEmojis[cat.category] || '📦'}</Text>
-                                        </View>
-                                        <View className="flex-1 mr-2">
-                                            <Text className="text-white font-bold text-[13px] mb-1">{cat.category}</Text>
-                                            <View className="w-full h-1.5 rounded-full overflow-hidden bg-white/10">
-                                                <View
-                                                    className="h-full rounded-full"
-                                                    style={{
-                                                        width: `${Math.min(Math.max(cat.percentage, 4), 100)}%`,
-                                                        backgroundColor: chartColors[i % chartColors.length],
-                                                    }}
-                                                />
-                                            </View>
-                                        </View>
-                                        <View className="items-end min-w-[72px]">
-                                            <Text className="text-white font-bold text-[12px]">{cat.formattedTotal}</Text>
-                                            <Text className="text-white/70 text-[11px] font-semibold">{cat.percentage}%</Text>
+                            {data.categories.slice(0, 4).map((cat, i) => (
+                                <View
+                                    key={cat.category}
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        paddingVertical: 10,
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 18, marginRight: 10 }}>{typeEmojis[cat.category] || '📦'}</Text>
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 }}>{cat.category}</Text>
+                                        <View style={{ height: 4, borderRadius: 2, backgroundColor: '#FFF9E6', overflow: 'hidden' }}>
+                                            <View
+                                                style={{
+                                                    height: '100%',
+                                                    borderRadius: 2,
+                                                    width: `${Math.min(Math.max(cat.percentage, 4), 100)}%`,
+                                                    backgroundColor: chartColors[i % chartColors.length],
+                                                }}
+                                            />
                                         </View>
                                     </View>
-                                ))}
-                            </View>
+                                    <View style={{ alignItems: 'flex-end', minWidth: 72 }}>
+                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#1A1A1A' }}>{cat.formattedTotal}</Text>
+                                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>{cat.percentage}%</Text>
+                                    </View>
+                                </View>
+                            ))}
                         </>
                     ) : (
-                        <Text className="text-center text-white/70 py-6">No spending this month.</Text>
+                        <Text style={{ textAlign: 'center', color: '#666666', paddingVertical: 20 }}>No spending this month.</Text>
                     )}
-                </ColorCard>
+                </Card>
 
-                <ColorCard variant="emerald" className="p-5 mb-4">
-                    <View className="flex-row justify-between items-end mb-4">
-                        <View>
-                            <Text className="text-white text-[17px] font-bold mb-1">Recent Transactions</Text>
-                            <Text className="text-white/70 text-[12px]">Small cards, quick scan</Text>
-                        </View>
+                {/* Recent Transactions Card */}
+                <Card style={{ marginBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>Recent Transactions</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('AllTransactions')}>
-                            <Text className="text-white text-[12px] font-bold">View All</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#F5A623' }}>View All</Text>
                         </TouchableOpacity>
                     </View>
 
                     {data.recent.length > 0 ? (
-                        data.recent.slice(0, 4).map((transaction, index) => (
+                        data.recent.slice(0, 5).map((tx, index) => (
                             <View
-                                key={transaction._id}
-                                className={`rounded-[22px] px-4 py-3 flex-row items-center ${index === data.recent.slice(0, 4).length - 1 ? '' : 'mb-3'}`}
-                                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                                key={tx._id}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingVertical: 10,
+                                }}
                             >
-                                <View className="w-11 h-11 rounded-[16px] items-center justify-center mr-3 bg-black/15">
-                                    <Text className="text-[20px]">{typeEmojis[transaction.type] || '📦'}</Text>
-                                </View>
-                                <View className="flex-1 mr-2">
-                                    <Text className="text-white font-bold text-[13px] mb-1" numberOfLines={1}>
-                                        {transaction.ngapain || 'No notes'}
-                                    </Text>
-                                    <Text className="text-white/70 text-[11px] font-medium">
-                                        {new Date(transaction.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} • {transaction.pocket}
+                                <Text style={{ fontSize: 18, marginRight: 10 }}>{typeEmojis[tx.type] || '📦'}</Text>
+                                <View style={{ flex: 1, marginRight: 8 }}>
+                                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }} numberOfLines={1}>{tx.ngapain || 'No notes'}</Text>
+                                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginTop: 2 }}>
+                                        {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} · {tx.pocket}
                                     </Text>
                                 </View>
-                                <Text className="text-white font-extrabold text-[13px]">
-                                    - {transaction.formattedAmount || `Rp ${transaction.amount}`}
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>
+                                    - {tx.formattedAmount || `Rp ${tx.amount}`}
                                 </Text>
                             </View>
                         ))
                     ) : (
-                        <Text className="text-center text-white/70 py-6">No recent transactions.</Text>
+                        <Text style={{ textAlign: 'center', color: '#666666', paddingVertical: 20 }}>No recent transactions.</Text>
                     )}
-                </ColorCard>
+                </Card>
             </ScrollView>
         </SafeAreaView>
     );
