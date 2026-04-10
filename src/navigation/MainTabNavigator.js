@@ -17,7 +17,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       <View style={styles.tabBar}>
         {visibleRoutes.map((route) => {
           const isFocused = state.index === state.routes.indexOf(route);
-          const color = isFocused ? '#F5A623' : '#999999';
+          const color = isFocused ? '#F5B233' : '#8B7A57';
 
           const onPress = () => {
             if (!isFocused) navigation.navigate(route.name);
@@ -88,25 +88,27 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#F5A623',
+    backgroundColor: '#F5B233',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    elevation: 4,
-    shadowColor: '#F5A623',
+    elevation: 8,
+    shadowColor: '#F5B233',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
   },
   fabText: {
-    color: '#1A1A1A',
+    color: '#120E08',
     fontSize: 28,
     fontWeight: '300',
     marginTop: -1,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#17130D',
+    borderTopWidth: 1,
+    borderTopColor: '#2D2416',
     paddingBottom: 16,
     paddingTop: 10,
     height: 64,
@@ -115,8 +117,8 @@ const styles = StyleSheet.create({
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
   },
   tabItem: {
     flex: 1,
