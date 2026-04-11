@@ -3,8 +3,9 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshCon
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-gifted-charts';
 import api from '../api/axios';
+import T from '../theme';
 
-const chartColors = ['#F5A623', '#FF4D6D', '#22C55E', '#1677FF', '#06B6D4', '#F97316', '#3B82F6', '#EC4899', '#FBBF24', '#14B8A6'];
+const chartColors = ['#F5B233', '#FF4D6D', '#22C55E', '#1677FF', '#06B6D4', '#F97316', '#3B82F6', '#EC4899', '#FBBF24', '#14B8A6'];
 const typeEmojis = {
     Eat: '🍽️', Snack: '🍿', Groceries: '🛒', Laundry: '🧺',
     Bensin: '⛽', Flazz: '💳', 'Home Appliance': '🏠', 'Jumat Berkah': '🤲',
@@ -15,14 +16,11 @@ function Card({ children, style }) {
     return (
         <View
             style={[{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: T.cardBg,
                 borderRadius: 20,
                 padding: 16,
-                elevation: 2,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.06,
-                shadowRadius: 8,
+                borderWidth: 1,
+                borderColor: T.cardBorder,
             }, style]}
         >
             {children}
@@ -68,16 +66,16 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
 
     if (loading && !refreshing) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#F5A623" />
+            <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={T.accent} />
             </SafeAreaView>
         );
     }
 
     if (!data) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: '#1A1A1A', fontSize: 15, fontWeight: '600' }}>Failed to load data</Text>
+            <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg, justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: T.textSecondary, fontSize: 15, fontWeight: '600' }}>Failed to load data</Text>
             </SafeAreaView>
         );
     }
@@ -86,19 +84,19 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
         value: cat.total,
         color: chartColors[index % chartColors.length],
         text: `${cat.percentage}%`,
-        textColor: '#333333',
+        textColor: T.textSecondary,
     }));
 
     const monthLabel = targetDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
     const topCategory = data.categories?.[0];
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg }} edges={['top', 'left', 'right']}>
             {/* Header */}
             <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1A1A1A' }}>Dashboard</Text>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: T.textPrimary }}>Dashboard</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
                         <Text style={{ fontSize: 18 }}>{avatar}</Text>
                     </View>
                 </TouchableOpacity>
@@ -106,14 +104,14 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
 
             {/* Month Nav */}
             <View style={{ paddingHorizontal: 20, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>‹</Text>
+                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: T.textPrimary, fontSize: 16, fontWeight: '600' }}>‹</Text>
                 </TouchableOpacity>
-                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF9E6' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{monthLabel}</Text>
+                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: T.accentSoft }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: T.accent }}>{monthLabel}</Text>
                 </View>
-                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>›</Text>
+                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: T.textPrimary, fontSize: 16, fontWeight: '600' }}>›</Text>
                 </TouchableOpacity>
             </View>
 
@@ -121,20 +119,20 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                 contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 }}
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F5A623" />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />}
             >
                 {/* Total Spending Card */}
                 <Card style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 4 }}>Total Spending</Text>
-                    <Text style={{ fontSize: 28, fontWeight: '800', color: '#1A1A1A', marginBottom: 8 }}>{data.total.formatted}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: T.textSecondary, marginBottom: 4 }}>Total Spending</Text>
+                    <Text style={{ fontSize: 28, fontWeight: '800', color: T.textPrimary, marginBottom: 8 }}>{data.total.formatted}</Text>
                     <View style={{ flexDirection: 'row', gap: 12 }}>
-                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
-                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Transactions</Text>
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{data.recent?.length || 0} recent</Text>
+                        <View style={{ flex: 1, backgroundColor: T.accentSoft, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                            <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary, marginBottom: 2 }}>Transactions</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: T.textPrimary }}>{data.recent?.length || 0} recent</Text>
                         </View>
-                        <View style={{ flex: 1, backgroundColor: '#FFF9E6', borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
-                            <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginBottom: 2 }}>Trend</Text>
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: data.comparison?.increased ? '#EF4444' : '#22C55E' }}>
+                        <View style={{ flex: 1, backgroundColor: T.accentSoft, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10 }}>
+                            <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary, marginBottom: 2 }}>Trend</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: data.comparison?.increased ? T.danger : T.success }}>
                                 {data.comparison?.hasLastMonth
                                     ? `${data.comparison.increased ? '+' : '-'}${data.comparison.difference}`
                                     : 'No prior month'}
@@ -146,8 +144,8 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                 {/* Category Breakdown Card */}
                 <Card style={{ marginBottom: 12 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>Categories</Text>
-                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>{data.categories.length} groups</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: T.textPrimary }}>Categories</Text>
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary }}>{data.categories.length} groups</Text>
                     </View>
 
                     {data.categories.length > 0 ? (
@@ -160,8 +158,8 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                                     data={pieData}
                                     centerLabelComponent={() => (
                                         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text style={{ color: '#666666', fontSize: 10, fontWeight: '600' }}>Top</Text>
-                                            <Text style={{ color: '#1A1A1A', fontSize: 16, fontWeight: '800' }}>
+                                            <Text style={{ color: T.textSecondary, fontSize: 10, fontWeight: '600' }}>Top</Text>
+                                            <Text style={{ color: T.textPrimary, fontSize: 16, fontWeight: '800' }}>
                                                 {topCategory ? `${topCategory.percentage}%` : '0%'}
                                             </Text>
                                         </View>
@@ -180,8 +178,8 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                                 >
                                     <Text style={{ fontSize: 18, marginRight: 10 }}>{typeEmojis[cat.category] || '📦'}</Text>
                                     <View style={{ flex: 1, marginRight: 8 }}>
-                                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 }}>{cat.category}</Text>
-                                        <View style={{ height: 4, borderRadius: 2, backgroundColor: '#FFF9E6', overflow: 'hidden' }}>
+                                        <Text style={{ fontSize: 13, fontWeight: '700', color: T.textPrimary, marginBottom: 4 }}>{cat.category}</Text>
+                                        <View style={{ height: 4, borderRadius: 2, backgroundColor: T.inputBg, overflow: 'hidden' }}>
                                             <View
                                                 style={{
                                                     height: '100%',
@@ -193,23 +191,23 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                                         </View>
                                     </View>
                                     <View style={{ alignItems: 'flex-end', minWidth: 72 }}>
-                                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#1A1A1A' }}>{cat.formattedTotal}</Text>
-                                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>{cat.percentage}%</Text>
+                                        <Text style={{ fontSize: 12, fontWeight: '700', color: T.textPrimary }}>{cat.formattedTotal}</Text>
+                                        <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary }}>{cat.percentage}%</Text>
                                     </View>
                                 </View>
                             ))}
                         </>
                     ) : (
-                        <Text style={{ textAlign: 'center', color: '#666666', paddingVertical: 20 }}>No spending this month.</Text>
+                        <Text style={{ textAlign: 'center', color: T.textMuted, paddingVertical: 20 }}>No spending this month.</Text>
                     )}
                 </Card>
 
                 {/* Recent Transactions Card */}
                 <Card style={{ marginBottom: 12 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1A1A1A' }}>Recent Transactions</Text>
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: T.textPrimary }}>Recent Transactions</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('AllTransactions')}>
-                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#F5A623' }}>View All</Text>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: T.accent }}>View All</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -225,18 +223,18 @@ export default function DashboardScreen({ setIsAuthenticated, navigation }) {
                             >
                                 <Text style={{ fontSize: 18, marginRight: 10 }}>{typeEmojis[tx.type] || '📦'}</Text>
                                 <View style={{ flex: 1, marginRight: 8 }}>
-                                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }} numberOfLines={1}>{tx.ngapain || 'No notes'}</Text>
-                                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginTop: 2 }}>
+                                    <Text style={{ fontSize: 13, fontWeight: '700', color: T.textPrimary }} numberOfLines={1}>{tx.ngapain || 'No notes'}</Text>
+                                    <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary, marginTop: 2 }}>
                                         {new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} · {tx.pocket}
                                     </Text>
                                 </View>
-                                <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: T.danger }}>
                                     - {tx.formattedAmount || `Rp ${tx.amount}`}
                                 </Text>
                             </View>
                         ))
                     ) : (
-                        <Text style={{ textAlign: 'center', color: '#666666', paddingVertical: 20 }}>No recent transactions.</Text>
+                        <Text style={{ textAlign: 'center', color: T.textMuted, paddingVertical: 20 }}>No recent transactions.</Text>
                     )}
                 </Card>
             </ScrollView>

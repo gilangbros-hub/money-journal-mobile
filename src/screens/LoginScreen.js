@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
+import T from '../theme';
 
 function Card({ children, style }) {
     return (
         <View style={[{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: T.cardBg,
             borderRadius: 20,
             padding: 20,
-            elevation: 2,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
+            borderWidth: 1,
+            borderColor: T.cardBorder,
         }, style]}>
             {children}
         </View>
@@ -52,7 +50,7 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
@@ -66,34 +64,36 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
                                 style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
                             />
                         </View>
-                        <Text style={{ fontSize: 24, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 }}>Money Journal</Text>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666' }}>Sign in to your account</Text>
+                        <Text style={{ fontSize: 24, fontWeight: '800', color: T.textPrimary, marginBottom: 4 }}>Money Journal</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: T.textSecondary }}>Sign in to your account</Text>
                     </View>
 
                     {/* Form Card */}
                     <Card>
-                        <Text style={{ fontSize: 17, fontWeight: '800', color: '#1A1A1A', marginBottom: 16 }}>Sign In</Text>
+                        <Text style={{ fontSize: 17, fontWeight: '800', color: T.textPrimary, marginBottom: 16 }}>Sign In</Text>
 
                         {error ? (
-                            <View style={{ backgroundColor: '#FEF2F2', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginBottom: 16 }}>
-                                <Text style={{ color: '#EF4444', fontSize: 13, fontWeight: '600' }}>{error}</Text>
+                            <View style={{ backgroundColor: 'rgba(239,68,68,0.12)', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, marginBottom: 16 }}>
+                                <Text style={{ color: T.danger, fontSize: 13, fontWeight: '600' }}>{error}</Text>
                             </View>
                         ) : null}
 
                         <View style={{ marginBottom: 14 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 6 }}>Username</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: T.textSecondary, marginBottom: 6 }}>Username</Text>
                             <TextInput
                                 style={{
-                                    backgroundColor: '#F5F5F0',
+                                    backgroundColor: T.inputBg,
                                     borderRadius: 14,
                                     paddingHorizontal: 14,
                                     paddingVertical: 12,
                                     fontSize: 14,
                                     fontWeight: '600',
-                                    color: '#1A1A1A',
+                                    color: T.textPrimary,
+                                    borderWidth: 1,
+                                    borderColor: T.inputBorder,
                                 }}
                                 placeholder="your_username"
-                                placeholderTextColor="#AAAAAA"
+                                placeholderTextColor={T.textMuted}
                                 value={username}
                                 onChangeText={setUsername}
                                 autoCapitalize="none"
@@ -101,19 +101,21 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
                         </View>
 
                         <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#666666', marginBottom: 6 }}>Password</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: T.textSecondary, marginBottom: 6 }}>Password</Text>
                             <TextInput
                                 style={{
-                                    backgroundColor: '#F5F5F0',
+                                    backgroundColor: T.inputBg,
                                     borderRadius: 14,
                                     paddingHorizontal: 14,
                                     paddingVertical: 12,
                                     fontSize: 14,
                                     fontWeight: '600',
-                                    color: '#1A1A1A',
+                                    color: T.textPrimary,
+                                    borderWidth: 1,
+                                    borderColor: T.inputBorder,
                                 }}
                                 placeholder="••••••••"
-                                placeholderTextColor="#AAAAAA"
+                                placeholderTextColor={T.textMuted}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry
@@ -125,7 +127,7 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
                             disabled={loading}
                             activeOpacity={0.9}
                             style={{
-                                backgroundColor: '#F5A623',
+                                backgroundColor: T.accent,
                                 borderRadius: 28,
                                 height: 52,
                                 alignItems: 'center',
@@ -133,9 +135,9 @@ export default function LoginScreen({ navigation, setIsAuthenticated }) {
                             }}
                         >
                             {loading ? (
-                                <ActivityIndicator color="#1A1A1A" />
+                                <ActivityIndicator color={T.textOnAccent} />
                             ) : (
-                                <Text style={{ color: '#1A1A1A', fontWeight: '800', fontSize: 15 }}>Sign In</Text>
+                                <Text style={{ color: T.textOnAccent, fontWeight: '800', fontSize: 15 }}>Sign In</Text>
                             )}
                         </TouchableOpacity>
                     </Card>

@@ -19,29 +19,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../api/axios';
-
-const theme = {
-    pageBackground: '#110E09',
-    cardBackground: '#1B1711',
-    cardBorder: '#2D2619',
-    cardShadow: '#000000',
-    inputBackground: '#262016',
-    inputBorder: '#332B1D',
-    textPrimary: '#FFF4D6',
-    textSecondary: '#C3B38D',
-    textMuted: '#8F8160',
-    accent: '#F5B233',
-    accentStrong: '#D89517',
-    accentSoft: '#3D2B0C',
-    accentSurface: '#F6E1A4',
-    chipBackground: '#231D13',
-    chipDisabled: '#2B261F',
-    overlay: '#080604',
-    sheetBackground: '#F8F1E2',
-    sheetHandle: '#D2C29B',
-    sheetText: '#17120B',
-    sheetSelected: '#F6E6B8',
-};
+import T from '../theme';
 
 const types = [
     { name: 'Eat', icon: '\u{1F37D}\uFE0F', accent: '#FF8A3D' },
@@ -112,16 +90,11 @@ function Card({ children, style }) {
         <View
             style={[
                 {
-                    backgroundColor: theme.cardBackground,
+                    backgroundColor: T.cardBg,
                     borderRadius: 28,
                     padding: 16,
                     borderWidth: 1,
-                    borderColor: theme.cardBorder,
-                    elevation: 10,
-                    shadowColor: theme.cardShadow,
-                    shadowOffset: { width: 0, height: 18 },
-                    shadowOpacity: 0.22,
-                    shadowRadius: 24,
+                    borderColor: T.cardBorder,
                 },
                 style,
             ]}
@@ -235,7 +208,7 @@ function BottomSheet({ visible, title, items, selectedValue, onClose, onSelect, 
                         pointerEvents="none"
                         style={[
                             StyleSheet.absoluteFillObject,
-                            { backgroundColor: theme.overlay, opacity: backdropOpacity },
+                            { backgroundColor: '#000', opacity: backdropOpacity },
                         ]}
                     />
                 </TouchableOpacity>
@@ -244,7 +217,7 @@ function BottomSheet({ visible, title, items, selectedValue, onClose, onSelect, 
                     style={{
                         transform: [{ translateY }],
                         height: sheetHeight,
-                        backgroundColor: theme.sheetBackground,
+                        backgroundColor: T.sheetBg,
                         borderTopLeftRadius: 30,
                         borderTopRightRadius: 30,
                         paddingHorizontal: 20,
@@ -257,10 +230,10 @@ function BottomSheet({ visible, title, items, selectedValue, onClose, onSelect, 
                     }}
                 >
                     <View {...panResponder.panHandlers} style={{ paddingTop: 14, paddingBottom: 12, alignItems: 'center' }}>
-                        <View style={{ width: 52, height: 5, borderRadius: 999, backgroundColor: theme.sheetHandle }} />
+                        <View style={{ width: 52, height: 5, borderRadius: 999, backgroundColor: T.sheetHandle }} />
                     </View>
 
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: theme.sheetText, marginBottom: 12 }}>{title}</Text>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: T.sheetText, marginBottom: 12 }}>{title}</Text>
 
                     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
                         {items.map((item) => {
@@ -281,12 +254,12 @@ function BottomSheet({ visible, title, items, selectedValue, onClose, onSelect, 
                                         paddingHorizontal: 14,
                                         borderRadius: 18,
                                         marginBottom: 8,
-                                        backgroundColor: isSelected ? theme.sheetSelected : 'transparent',
+                                        backgroundColor: isSelected ? T.sheetSelected : 'transparent',
                                     }}
                                 >
                                     <Text style={{ fontSize: 18, marginRight: 10 }}>{item.icon}</Text>
-                                    <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: theme.sheetText }}>{item.name}</Text>
-                                    {isSelected && <Text style={{ fontSize: 16, fontWeight: '800', color: theme.accentStrong }}>{'\u2713'}</Text>}
+                                    <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: T.sheetText }}>{item.name}</Text>
+                                    {isSelected && <Text style={{ fontSize: 16, fontWeight: '800', color: T.accentStrong }}>{'\u2713'}</Text>}
                                 </TouchableOpacity>
                             );
                         })}
@@ -309,14 +282,14 @@ function FieldRow({ label, value, icon, onPress }) {
                 justifyContent: 'space-between',
                 paddingVertical: 15,
                 borderBottomWidth: 1,
-                borderBottomColor: '#2B2418',
+                borderBottomColor: T.cardBorder,
             }}
         >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: theme.textSecondary }}>{label}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: T.textSecondary }}>{label}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 {icon && <Text style={{ fontSize: 14, marginRight: 6 }}>{icon}</Text>}
-                <Text style={{ fontSize: 14, fontWeight: '700', color: theme.textPrimary, marginRight: 4 }}>{value}</Text>
-                <Text style={{ fontSize: 14, color: theme.textMuted }}>{'\u203A'}</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: T.textPrimary, marginRight: 4 }}>{value}</Text>
+                <Text style={{ fontSize: 14, color: T.textMuted }}>{'\u203A'}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -440,10 +413,10 @@ export default function AddTransactionScreen({ navigation }) {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.pageBackground }} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg }} edges={['top', 'left', 'right']}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 4 }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: theme.textPrimary }}>Add Transaction</Text>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: T.textPrimary }}>Add Transaction</Text>
                 </View>
 
                 <ScrollView
@@ -465,15 +438,15 @@ export default function AddTransactionScreen({ navigation }) {
                             activeOpacity={0.9}
                             style={{ alignItems: 'center', paddingVertical: 30, paddingHorizontal: 18 }}
                         >
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary, marginBottom: 6 }}>Amount</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: T.textSecondary, marginBottom: 6 }}>Amount</Text>
                             {isEditingAmount ? (
                                 <View style={{ alignItems: 'center', width: '100%' }}>
-                                    <Text style={{ fontSize: 14, fontWeight: '800', color: theme.accent, marginBottom: 4 }}>Rp</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: '800', color: T.accent, marginBottom: 4 }}>Rp</Text>
                                     <TextInput
                                         ref={amountInputRef}
-                                        style={{ fontSize: 38, fontWeight: '800', color: theme.textPrimary, textAlign: 'center', width: '100%' }}
+                                        style={{ fontSize: 38, fontWeight: '800', color: T.textPrimary, textAlign: 'center', width: '100%' }}
                                         placeholder="0"
-                                        placeholderTextColor={theme.textMuted}
+                                        placeholderTextColor={T.textMuted}
                                         keyboardType="numeric"
                                         value={amount}
                                         onChangeText={handleAmountChange}
@@ -483,28 +456,28 @@ export default function AddTransactionScreen({ navigation }) {
                                 </View>
                             ) : (
                                 <>
-                                    <Text style={{ fontSize: 14, fontWeight: '800', color: theme.accent, marginBottom: 4 }}>Rp</Text>
-                                    <Text style={{ fontSize: 38, fontWeight: '800', color: theme.textPrimary }}>{formattedAmount}</Text>
+                                    <Text style={{ fontSize: 14, fontWeight: '800', color: T.accent, marginBottom: 4 }}>Rp</Text>
+                                    <Text style={{ fontSize: 38, fontWeight: '800', color: T.textPrimary }}>{formattedAmount}</Text>
                                 </>
                             )}
                         </TouchableOpacity>
 
                         <View style={{ paddingHorizontal: 18, paddingVertical: 14 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary, marginBottom: 8 }}>Description</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: T.textSecondary, marginBottom: 8 }}>Description</Text>
                             <TextInput
                                 style={{
                                     fontSize: 14,
                                     fontWeight: '600',
-                                    color: theme.textPrimary,
-                                    backgroundColor: theme.inputBackground,
+                                    color: T.textPrimary,
+                                    backgroundColor: T.inputBg,
                                     borderRadius: 16,
                                     borderWidth: 1,
-                                    borderColor: theme.inputBorder,
+                                    borderColor: T.inputBorder,
                                     paddingHorizontal: 14,
                                     paddingVertical: 12,
                                 }}
                                 placeholder="What did you spend on?"
-                                placeholderTextColor={theme.textMuted}
+                                placeholderTextColor={T.textMuted}
                                 value={ngapain}
                                 onChangeText={setNgapain}
                             />
@@ -531,7 +504,7 @@ export default function AddTransactionScreen({ navigation }) {
                         </View>
 
                         <View style={{ paddingHorizontal: 18, paddingVertical: 16 }}>
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary, marginBottom: 10 }}>Budget Month</Text>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: T.textSecondary, marginBottom: 10 }}>Budget Month</Text>
                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                 {budgetMonthsList.map((month) => {
                                     const isClosed = closedMonthKeys.includes(month.key);
@@ -548,9 +521,9 @@ export default function AddTransactionScreen({ navigation }) {
                                                 borderRadius: 16,
                                                 paddingVertical: 12,
                                                 alignItems: 'center',
-                                                backgroundColor: isClosed ? theme.chipDisabled : isSelected ? theme.accentSoft : theme.chipBackground,
+                                                backgroundColor: isClosed ? T.surfaceHover : isSelected ? T.accentSoft : T.inputBg,
                                                 borderWidth: 1,
-                                                borderColor: isSelected ? theme.accent : isClosed ? '#3C3428' : '#322A1E',
+                                                borderColor: isSelected ? T.accent : T.inputBorder,
                                                 opacity: isClosed ? 0.55 : 1,
                                             }}
                                         >
@@ -558,7 +531,7 @@ export default function AddTransactionScreen({ navigation }) {
                                                 style={{
                                                     fontSize: 12,
                                                     fontWeight: '700',
-                                                    color: isClosed ? theme.textMuted : isSelected ? theme.accentSurface : theme.textPrimary,
+                                                    color: isClosed ? T.textMuted : isSelected ? T.accentSurface : T.textPrimary,
                                                 }}
                                             >
                                                 {isClosed ? `\u{1F512} ${month.label}` : month.label}
@@ -575,12 +548,12 @@ export default function AddTransactionScreen({ navigation }) {
                                 disabled={loading}
                                 activeOpacity={0.9}
                                 style={{
-                                    backgroundColor: theme.accent,
+                                    backgroundColor: T.accent,
                                     borderRadius: 28,
                                     height: 54,
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    shadowColor: theme.accent,
+                                    shadowColor: T.accent,
                                     shadowOffset: { width: 0, height: 8 },
                                     shadowOpacity: 0.28,
                                     shadowRadius: 16,
@@ -588,9 +561,9 @@ export default function AddTransactionScreen({ navigation }) {
                                 }}
                             >
                                 {loading ? (
-                                    <ActivityIndicator color="#130E06" />
+                                    <ActivityIndicator color={T.textOnAccent} />
                                 ) : (
-                                    <Text style={{ color: '#130E06', fontWeight: '800', fontSize: 15 }}>Save Transaction</Text>
+                                    <Text style={{ color: T.textOnAccent, fontWeight: '800', fontSize: 15 }}>Save Transaction</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
@@ -627,42 +600,37 @@ export default function AddTransactionScreen({ navigation }) {
             />
 
             <Modal visible={showSuccessModal} transparent animationType="fade">
-                <View style={{ flex: 1, backgroundColor: 'rgba(8,6,4,0.62)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+                <View style={{ flex: 1, backgroundColor: T.overlay, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
                     <View
                         style={{
-                            backgroundColor: theme.cardBackground,
+                            backgroundColor: T.cardBg,
                             width: '100%',
                             borderRadius: 28,
                             padding: 24,
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: theme.cardBorder,
-                            elevation: 10,
-                            shadowColor: '#000000',
-                            shadowOffset: { width: 0, height: 10 },
-                            shadowOpacity: 0.22,
-                            shadowRadius: 18,
+                            borderColor: T.cardBorder,
                         }}
                     >
-                        <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: theme.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                        <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                             <Text style={{ fontSize: 32 }}>{successMsg.emoji}</Text>
                         </View>
-                        <Text style={{ fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 6 }}>Transaction Saved</Text>
-                        <Text style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 20, textAlign: 'center' }}>{successMsg.text}</Text>
+                        <Text style={{ fontSize: 20, fontWeight: '800', color: T.textPrimary, marginBottom: 6 }}>Transaction Saved</Text>
+                        <Text style={{ fontSize: 13, color: T.textSecondary, marginBottom: 20, textAlign: 'center' }}>{successMsg.text}</Text>
 
                         <TouchableOpacity
                             onPress={handleAddAnother}
                             activeOpacity={0.9}
-                            style={{ width: '100%', backgroundColor: theme.accent, borderRadius: 18, height: 48, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}
+                            style={{ width: '100%', backgroundColor: T.accent, borderRadius: 18, height: 48, alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}
                         >
-                            <Text style={{ color: '#130E06', fontWeight: '800', fontSize: 14 }}>Add Another</Text>
+                            <Text style={{ color: T.textOnAccent, fontWeight: '800', fontSize: 14 }}>Add Another</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={handleGoHome}
                             activeOpacity={0.9}
-                            style={{ width: '100%', backgroundColor: theme.inputBackground, borderRadius: 18, height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: theme.inputBorder }}
+                            style={{ width: '100%', backgroundColor: T.inputBg, borderRadius: 18, height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.inputBorder }}
                         >
-                            <Text style={{ color: theme.textPrimary, fontWeight: '700', fontSize: 14 }}>Go to Dashboard</Text>
+                            <Text style={{ color: T.textPrimary, fontWeight: '700', fontSize: 14 }}>Go to Dashboard</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

@@ -6,6 +6,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
 import BudgetScreen from '../screens/BudgetScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import T from '../theme';
 
 const Tab = createBottomTabNavigator();
 
@@ -17,7 +18,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       <View style={styles.tabBar}>
         {visibleRoutes.map((route) => {
           const isFocused = state.index === state.routes.indexOf(route);
-          const color = isFocused ? '#F5B233' : '#8B7A57';
+          const color = isFocused ? T.tabActive : T.tabInactive;
 
           const onPress = () => {
             if (!isFocused) navigation.navigate(route.name);
@@ -88,27 +89,27 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#F5B233',
+    backgroundColor: T.accent,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
     elevation: 8,
-    shadowColor: '#F5B233',
+    shadowColor: T.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
   },
   fabText: {
-    color: '#120E08',
+    color: T.textOnAccent,
     fontSize: 28,
     fontWeight: '300',
     marginTop: -1,
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#17130D',
+    backgroundColor: T.tabBarBg,
     borderTopWidth: 1,
-    borderTopColor: '#2D2416',
+    borderTopColor: T.tabBarBorder,
     paddingBottom: 16,
     paddingTop: 10,
     height: 64,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../api/axios';
+import T from '../theme';
 
 const types = ['All', 'Eat', 'Snack', 'Groceries', 'Laundry', 'Bensin', 'Flazz', 'Home Appliance', 'Jumat Berkah', 'Uang Sampah', 'Uang Keamanan', 'Medicine', 'Others'];
 const typeEmojis = {
@@ -16,23 +17,6 @@ const pocketIcons = {
     'Weekend Transport': '🚗', Investasi: '📈', Bandung: '⛰️',
     Sedeqah: '🤲', IPL: '🏘️',
 };
-
-function Card({ children, style }) {
-    return (
-        <View style={[{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 20,
-            padding: 16,
-            elevation: 2,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-        }, style]}>
-            {children}
-        </View>
-    );
-}
 
 export default function AllTransactionsScreen({ navigation }) {
     const [transactions, setTransactions] = useState([]);
@@ -104,15 +88,15 @@ export default function AllTransactionsScreen({ navigation }) {
                 paddingVertical: 8,
                 borderRadius: 20,
                 marginRight: 8,
-                backgroundColor: isActive ? '#FFF9E6' : '#F5F5F0',
+                backgroundColor: isActive ? T.accentSoft : T.inputBg,
                 borderWidth: isActive ? 1.5 : 0,
-                borderColor: isActive ? '#F5A623' : 'transparent',
+                borderColor: isActive ? T.accent : 'transparent',
                 flexDirection: 'row',
                 alignItems: 'center',
             }}
         >
             {icon && <Text style={{ fontSize: 12, marginRight: 4 }}>{icon}</Text>}
-            <Text style={{ fontSize: 12, fontWeight: '700', color: isActive ? '#D4891A' : '#333333' }}>{item}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: isActive ? T.accent : T.textSecondary }}>{item}</Text>
         </TouchableOpacity>
     );
 
@@ -126,48 +110,48 @@ export default function AllTransactionsScreen({ navigation }) {
         >
             <Text style={{ fontSize: 18, marginRight: 10 }}>{typeEmojis[item.type] || '📦'}</Text>
             <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{item.ngapain}</Text>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666', marginTop: 2 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: T.textPrimary }}>{item.ngapain}</Text>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: T.textSecondary, marginTop: 2 }}>
                     {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} · {item.pocket}
                 </Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444', marginBottom: 4 }}>- {item.formattedAmount || `Rp ${item.amount}`}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: T.danger, marginBottom: 4 }}>- {item.formattedAmount || `Rp ${item.amount}`}</Text>
                 <TouchableOpacity onPress={() => handleDelete(item._id)}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#666666' }}>Delete</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '600', color: T.textMuted }}>Delete</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: T.pageBg }} edges={['top', 'left', 'right']}>
             {/* Header */}
             <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12, paddingVertical: 4 }}>
-                        <Text style={{ fontSize: 20, fontWeight: '600', color: '#F5A623' }}>←</Text>
+                        <Text style={{ fontSize: 20, fontWeight: '600', color: T.accent }}>←</Text>
                     </TouchableOpacity>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: '#1A1A1A' }}>Transactions</Text>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: T.textPrimary }}>Transactions</Text>
                 </View>
                 <TouchableOpacity
                     onPress={toggleSort}
-                    style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF9E6' }}
+                    style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: T.accentSoft }}
                 >
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#333333' }}>{sortOrder === 'desc' ? '↓ Newest' : '↑ Oldest'}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: T.accent }}>{sortOrder === 'desc' ? '↓ Newest' : '↑ Oldest'}</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Month Nav */}
             <View style={{ paddingHorizontal: 20, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>‹</Text>
+                <TouchableOpacity onPress={handlePrevMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: T.textPrimary, fontSize: 16, fontWeight: '600' }}>‹</Text>
                 </TouchableOpacity>
-                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: '#FFF9E6' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#1A1A1A' }}>{monthLabel}</Text>
+                <View style={{ paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, backgroundColor: T.accentSoft }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: T.accent }}>{monthLabel}</Text>
                 </View>
-                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#333333', fontSize: 16, fontWeight: '600' }}>›</Text>
+                <TouchableOpacity onPress={handleNextMonth} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: T.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ color: T.textPrimary, fontSize: 16, fontWeight: '600' }}>›</Text>
                 </TouchableOpacity>
             </View>
 
@@ -183,14 +167,14 @@ export default function AllTransactionsScreen({ navigation }) {
 
             {/* Summary */}
             <View style={{ paddingHorizontal: 20, paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#666666' }}>{transactions.length} transactions</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#EF4444' }}>{formattedTotal}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: T.textSecondary }}>{transactions.length} transactions</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: T.danger }}>{formattedTotal}</Text>
             </View>
 
             {/* List */}
             {loading && !refreshing ? (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color="#F5A623" />
+                    <ActivityIndicator size="large" color={T.accent} />
                 </View>
             ) : (
                 <FlatList
@@ -198,8 +182,8 @@ export default function AllTransactionsScreen({ navigation }) {
                     keyExtractor={(item) => item._id?.toString() || Math.random().toString()}
                     renderItem={renderItem}
                     contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
-                    ListEmptyComponent={<Text style={{ textAlign: 'center', color: '#666666', marginTop: 40 }}>No transactions found.</Text>}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#F5A623" />}
+                    ListEmptyComponent={<Text style={{ textAlign: 'center', color: T.textMuted, marginTop: 40 }}>No transactions found.</Text>}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.accent} />}
                 />
             )}
         </SafeAreaView>

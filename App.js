@@ -41,7 +41,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <StatusBar style="light" backgroundColor="#0F172A" />
+      <StatusBar style="light" backgroundColor="#0A0A0A" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <Stack.Screen name="Login">
